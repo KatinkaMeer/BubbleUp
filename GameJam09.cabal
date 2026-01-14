@@ -69,6 +69,7 @@ executable GameJam09
 
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.18.3.0,
+        extra,
         gloss
 
     -- Directories containing source files.

@@ -1,9 +1,18 @@
+{-# language RecordWildCards #-}
+{-# language LexicalNegation #-}
+
 module Main where
+
+import Data.List                        (delete)
+import Data.Tuple.Extra                 (first, second)
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 
-type World = (Float, Float)
+data World = World {
+  position :: (Float, Float),
+  pressedKeys :: [SpecialKey]
+  }
 
 main :: IO ()
 main = play
@@ -17,23 +26,28 @@ main = play
 
 
 initialWorld :: World
-initialWorld = (0,0)
+initialWorld = World (0,0) []
 
 render :: World -> Picture
-render (x,y) =
-    translate x y $
+render World{..} =
+    uncurry translate position $
         color black $
             circleSolid 25
 
 handleInput :: Event -> World -> World
-handleInput event (x,y) =
+handleInput event world@World{..} =
     case event of
-        EventKey (SpecialKey KeyDown) Down _ _ -> (x, y-20)
-        EventKey (SpecialKey KeyUp) Down _ _ -> (x, y+20)
-        EventKey (SpecialKey KeyLeft) Down _ _ -> (x-20, y)
-        EventKey (SpecialKey KeyRight) Down _ _ -> (x+20, y)
-        _ -> (x, y)
+        EventKey (SpecialKey k) action _ _ ->
+          world {pressedKeys = case action of
+            Down -> k : pressedKeys
+            Up   -> delete k pressedKeys
+          }
+        _ -> world
 
 update :: Float -> World -> World
-update _ world =
-    world 
+update _ world@World{..}
+  | KeyDown `elem` pressedKeys = world {position = second (- 5) position}
+  | KeyUp `elem` pressedKeys = world {position = second (+ 5) position}
+  | KeyLeft `elem` pressedKeys = world {position = first (- 5) position}
+  | KeyRight `elem` pressedKeys = world {position = first (+ 5) position}
+  | otherwise = world
