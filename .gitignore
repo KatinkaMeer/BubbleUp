@@ -1,6 +1,9 @@
-dist/
-dist-newstyle/
 *.hi
 *.o
+*.swp
 .DS_Store
+.stack-work/
+.stack.yaml.lock
 .vscode/
+dist-newstyle/
+dist/
