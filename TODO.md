@@ -1,6 +1,7 @@
 # TODOS:
 
 ## Graphics:
+
 Style: paint
 
 - characters
@@ -19,9 +20,10 @@ Style: paint
     - pop animation
 
 ## Gameplay
-  - sprung auf Grundlage von Richtung und Stärke
-  - movement:
-    - nicht in bubble: gravitation nach unten
-    - in bubble leicht nach oben
-    - ballon: schnell nach oben
-    - realistische beschleunigung mit endgeschwindigkeit
+
+- sprung auf Grundlage von Richtung und Stärke
+- movement:
+  - nicht in bubble: gravitation nach unten
+  - in bubble leicht nach oben
+  - ballon: schnell nach oben
+  - realistische beschleunigung mit endgeschwindigkeit
