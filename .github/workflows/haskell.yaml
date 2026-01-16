@@ -1,0 +1,176 @@
+---
+name: Haskell CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - master
+
+permissions: read-all
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        plan:
+          - { resolver: lts-22.44 }
+        include:
+          - os: ubuntu-latest
+            apt: freeglut3-dev
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install ${{ matrix.os }} Packages
+        uses: ConorMacBride/install-package@3e7ad059e07782ee54fa35f827df52aae0626f30
+        with:
+          apt: ${{ matrix.apt }}
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Restore ~/.stack
+        id: cache-stack-unix-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.stack
+          key: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}
+          restore-keys: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+              hashFiles('stack.yaml') }}
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}
+        if: runner.os != 'Windows'
+
+      - name: Restore %APPDATA%\stack %LOCALAPPDATA%\Programs\stack
+        id: cache-stack-windows-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~\AppData\Roaming\stack
+            ~\AppData\Local\Programs\stack
+          key: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}
+          restore-keys: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+              hashFiles('stack.yaml') }}
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}
+        if: runner.os == 'Windows'
+
+      - name: Restore .stack-work
+        id: cache-stack-work-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .stack-work
+          key: >-
+            ${{ runner.os }}-stack-work-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}-${{
+            hashFiles('**/*.hs') }}
+          restore-keys: >-
+            ${{ runner.os }}-stack-work-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}
+
+      - name: Setup stack
+        uses: haskell-actions/setup@7909071ceec0344debcc968c6c7a96a52e8dd0d7
+        with:
+          enable-stack: true
+          stack-no-global: true
+
+      - name: Update Stack package index
+        run: stack update
+
+      - name: Install dependencies on unix
+        run: |
+          set -ex
+          stack --no-terminal --install-ghc $ARGS test --bench \
+            --only-dependencies
+          set +ex
+        env:
+          ARGS: >-
+            --stack-yaml=stack.yaml
+            --resolver=${{ matrix.plan.resolver }}
+        if: runner.os != 'Windows'
+
+      - name: Install dependencies on windows
+        shell: powershell
+        run: |
+          stack --no-terminal -j 1 --install-ghc test `
+            ${env:RESOLVER} --bench --only-dependencies
+        env:
+          RESOLVER: >-
+            --resolver=${{ matrix.plan.resolver }}
+        if: runner.os == 'Windows'
+
+      - name: Build on unix
+        run: |
+          set -ex
+          stack --no-terminal --install-ghc test ${ARGS} --coverage --bench \
+            --no-run-benchmarks --haddock --no-haddock-deps
+          set +ex
+        env:
+          ARGS: >-
+            --stack-yaml=stack.yaml
+            --resolver=${{ matrix.plan.resolver }}
+        if: runner.os != 'Windows'
+
+      - name: Build on windows
+        shell: powershell
+        run: |
+          Import-Module $env:ChocolateyInstall\helpers\chocolateyInstaller.psm1
+          refreshenv
+          stack --no-terminal --install-ghc test `
+            ${env:RESOLVER} --coverage --bench --no-run-benchmarks `
+            --haddock --no-haddock-deps
+        env:
+          RESOLVER: >-
+            --resolver=${{ matrix.plan.resolver }}
+        if: runner.os == 'Windows'
+
+      - name: Cache ~/.stack
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.stack
+          key: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}
+        if: >-
+          always() && runner.os != 'Windows'
+          && steps.cache-stack-unix-restore.outputs.cache-hit != 'true'
+
+      - name: Cache %APPDATA%\stack %LOCALAPPDATA%\Programs\stack
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~\AppData\Roaming\stack
+            ~\AppData\Local\Programs\stack
+          key: >-
+            ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}
+        if: >-
+          always() && runner.os == 'Windows'
+          && steps.cache-stack-windows-restore.outputs.cache-hit != 'true'
+
+      - name: Cache .stack-work
+        uses: actions/cache/save@v4
+        with:
+          path: .stack-work
+          key: >-
+            ${{ runner.os }}-stack-work-${{ matrix.plan.resolver }}-${{
+            hashFiles('stack.yaml') }}-${{
+            hashFiles('package.yaml') }}-${{
+            hashFiles('**/*.hs') }}
+        if: >-
+          steps.cache-stack-work-restore.outputs.cache-hit != 'true'
