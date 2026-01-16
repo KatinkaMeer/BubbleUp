@@ -19,35 +19,10 @@ jobs:
           - ubuntu-latest
         plan:
           - { resolver: lts-22.44 }
-        include:
-          - os: macOS-latest
-            brew: []
-          - os: ubuntu-latest
-            apt: []
-          - os: windows-latest
-            choco: []
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Install ${{ matrix.os }} Packages
-        uses: ConorMacBride/install-package@3e7ad059e07782ee54fa35f827df52aae0626f30
-        with:
-          apt: ${{ matrix.apt }}
-          brew: ${{ matrix.brew }}
-          choco: ${{ matrix.choco }}
-
-      - name: Setup libspiro using MSYS2 and make it available
-        shell: bash
-        env:
-          MSYSTEM: UCRT64
-        run: |
-          C:/msys64/usr/bin/bash.exe -lc "pacman -Syuu --noconfirm"
-          C:/msys64/usr/bin/bash.exe -lc \
-            "pacman -S --noconfirm mingw-w64-ucrt-x86_64-libspiro"
-          echo "C:\\msys64\\ucrt64\\bin" >> $env:GITHUB_PATH
-        if: runner.os == 'Windows'
-
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
