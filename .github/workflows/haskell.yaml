@@ -19,10 +19,18 @@ jobs:
           - ubuntu-latest
         plan:
           - { resolver: lts-22.44 }
+        include:
+          - os: ubuntu-latest
+            apt: freeglut3-dev
 
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Install ${{ matrix.os }} Packages
+        uses: ConorMacBride/install-package@3e7ad059e07782ee54fa35f827df52aae0626f30
+        with:
+          apt: ${{ matrix.apt }}
+
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -97,11 +105,9 @@ jobs:
       - name: Install dependencies on windows
         shell: powershell
         run: |
-          stack --no-terminal -j 1 --install-ghc test ${env:STACK_YAML} `
+          stack --no-terminal -j 1 --install-ghc test `
             ${env:RESOLVER} --bench --only-dependencies
         env:
-          STACK_YAML: >-
-            --stack-yaml=${{ matrix.plan.stack-yaml || 'stack.yaml' }}
           RESOLVER: >-
             --resolver=${{ matrix.plan.resolver }}
         if: runner.os == 'Windows'
@@ -123,12 +129,10 @@ jobs:
         run: |
           Import-Module $env:ChocolateyInstall\helpers\chocolateyInstaller.psm1
           refreshenv
-          stack --no-terminal --install-ghc test ${env:STACK_YAML} `
+          stack --no-terminal --install-ghc test `
             ${env:RESOLVER} --coverage --bench --no-run-benchmarks `
             --haddock --no-haddock-deps
         env:
-          STACK_YAML: >-
-            --stack-yaml=${{ matrix.plan.stack-yaml || 'stack.yaml' }}
           RESOLVER: >-
             --resolver=${{ matrix.plan.resolver }}
         if: runner.os == 'Windows'
