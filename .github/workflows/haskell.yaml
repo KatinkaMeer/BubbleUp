@@ -46,7 +46,7 @@ jobs:
             hashFiles('package.yaml') }}
           restore-keys: >-
             ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}-${{
-              hashFiles(matrix.plan.stack-yaml || 'stack.yaml') }}
+              hashFiles('stack.yaml') }}
             ${{ runner.os }}-stack-global-${{ matrix.plan.resolver }}
         if: runner.os != 'Windows'
 
@@ -98,7 +98,7 @@ jobs:
           set +ex
         env:
           ARGS: >-
-            --stack-yaml=${{ 'stack.yaml' }}
+            --stack-yaml=stack.yaml
             --resolver=${{ matrix.plan.resolver }}
         if: runner.os != 'Windows'
 
@@ -120,7 +120,7 @@ jobs:
           set +ex
         env:
           ARGS: >-
-            --stack-yaml=${{ 'stack.yaml' }}
+            --stack-yaml=stack.yaml
             --resolver=${{ matrix.plan.resolver }}
         if: runner.os != 'Windows'
 
