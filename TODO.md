@@ -1,6 +1,6 @@
-# TODOS:
+# TODOs
 
-## Graphics:
+## Graphics
 
 Style: paint
 
