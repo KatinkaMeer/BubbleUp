@@ -14,7 +14,8 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        hPkgs = pkgs.haskell.packages."ghc967"; # need to match Stackage LTS version from stack.yaml snapshot
+        hPkgs = pkgs.haskell.packages."ghc967";
+          # need to match Stackage LTS version from stack.yaml snapshot
 
         myDevTools = [
           stack-wrapped # Stack, haskell package manager
@@ -28,7 +29,7 @@
           hPkgs.implicit-hie # auto generate LSP hie.yaml file from cabal
           hPkgs.retrie # Haskell refactoring tool
           hPkgs.cabal-install
-          
+
           # External dependencies of gloss
           pkgs.libGL
           pkgs.libGLU
@@ -37,7 +38,7 @@
           # External dependencies of openAL
           pkgs.openal
           pkgs.freealut
-          
+
         ];
 
         # Wrap Stack to work with our Nix integration. We do not want to modify
@@ -69,7 +70,8 @@
         devShells.default = pkgs.mkShell {
           buildInputs = myDevTools;
 
-          # Freeglut is a dynamic runtime dependency of gloss, so we have to point `LD_LIBRARY_PATH` to it.
+          # Freeglut is a dynamic runtime dependency of gloss,
+          # so we have to point `LD_LIBRARY_PATH` to it.
           LD_LIBRARY_PATH = "${pkgs.freeglut}/lib";
           # Inform stack on where to find `libGL.so` and the concrete OpenGL library.
           EXTRA_INCLUDE_DIRS="${pkgs.libGL}/include";
