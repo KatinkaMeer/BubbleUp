@@ -4,6 +4,8 @@ module Model (
   Object (..),
   World (..),
   Assets (..),
+  characterInBalloon,
+  characterInBubble,
   initialWorld,
 )
 where
@@ -24,9 +26,19 @@ data Jump = Jump
   }
 
 data CharacterStatus
-  = CharacterInBalloon
-  | CharacterInBubble
+  = CharacterInBalloon Float
+  | CharacterInBubble Float
   | PlainCharacter
+
+characterInBubble :: Float -> CharacterStatus
+characterInBubble t
+  | t <= 0 = PlainCharacter
+  | otherwise = CharacterInBubble t
+
+characterInBalloon :: Float -> CharacterStatus
+characterInBalloon t
+  | t <= 0 = PlainCharacter
+  | otherwise = CharacterInBalloon t
 
 data Assets = Assets
   { player :: !Picture,
@@ -47,7 +59,7 @@ initialWorld :: Assets -> World
 initialWorld assets =
   World
     { character = Object (0, 0) (0, 0),
-      characterStatus = CharacterInBubble,
+      characterStatus = CharacterInBubble 5,
       viewport = Object (0, 0) (0, 0),
       jump = Nothing,
       pressedKeys = [],
