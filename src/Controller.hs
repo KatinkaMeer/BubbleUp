@@ -7,7 +7,7 @@ import Data.List (delete, findIndex)
 import Data.Maybe (isNothing)
 import Data.Tuple.Extra (first, second)
 import Graphics.Gloss.Interface.Pure.Game (
-  Event (EventKey),
+  Event (EventKey, EventMotion),
   Key (MouseButton, SpecialKey),
   KeyState (Down, Up),
   MouseButton (LeftButton),
@@ -40,8 +40,8 @@ import Model (
  )
 
 handleInput :: Event -> GlobalState -> GlobalState
-handleInput event state@GlobalState {..} =
-  case event of
+handleInput event state@GlobalState {..} = setMousePosition (mousePosFromEvent event)
+  $ case event of
     EventKey (SpecialKey k) action _ _ ->
       state
         { uiState =
@@ -69,10 +69,10 @@ handleInput event state@GlobalState {..} =
             rposy = snd mousePoint
             mposx = fst mpos
             mposy = snd mpos
-            vx = 100 * (rposx - mposx)
-            vy = 100 * (rposy - mposx)
+            vx = 1000 * (rposx - mposx)
+            vy = 1000 * (rposy - mposy)
             v2 = vx * vx + vy * vy
-            rv = sqrt $ v2 / max 1 (min v2 100)
+            rv = sqrt $ v2 / max 1 (min v2 1000000)
             vx' = vx / rv
             vy' = vy / rv
           in
@@ -90,6 +90,10 @@ handleInput event state@GlobalState {..} =
                       }
               }
     _ -> state
+  where
+    setMousePosition position gState@GlobalState {..}
+      | GameScreen world@World {..} <- screen = gState {screen = GameScreen world {mousePosition = position}}
+      | otherwise = gState
 
 -- (left/right, bottom), top unlimited
 levelBoundary :: (Float, Float)
@@ -103,6 +107,11 @@ vmax = 300
 
 betweenSpeed :: Float -> Float -> Float
 betweenSpeed vmax v = max (-vmax) (min vmax v)
+
+mousePosFromEvent :: Event -> (Float, Float)
+mousePosFromEvent (EventKey _ _ _ pos) = pos
+mousePosFromEvent (EventMotion pos) = pos
+mousePosFromEvent _ = (0, 0)
 
 update :: Float -> GlobalState -> GlobalState
 update t state@GlobalState {..} =

@@ -118,6 +118,7 @@ data World = World
     elapsedTime :: !Float,
     viewport :: !Object,
     jump :: !(Maybe Jump),
+    mousePosition :: !(Float, Float),
     objects :: !(Map Integer (ObjectType, Object)),
     nextId :: Integer
   }
@@ -136,6 +137,7 @@ initialWorld =
       elapsedTime = 0,
       viewport = Object (0, 0) (0, 0),
       jump = Nothing,
+      mousePosition = (0, 0),
       objects = M.singleton 1 (Bubble, Object {position = (80, 40), velocity = (0, 0)}),
       nextId = 2
     }

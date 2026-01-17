@@ -2,14 +2,17 @@
 
 module View (render) where
 
+import Data.Maybe
 import Graphics.Gloss (
   Picture (Pictures),
   black,
   blank,
   circleSolid,
   color,
+  line,
   pictures,
   rectangleSolid,
+  text,
   translate,
  )
 
@@ -19,6 +22,7 @@ import Model (
   Assets (..),
   CharacterStatus (..),
   GlobalState (..),
+  Jump (..),
   Object (Object, position),
   Screen (..),
   UiState (UiState, assets),
@@ -44,9 +48,12 @@ renderWorld
       ..
     } =
     pictures
-      $
-      -- player sprite
-      characterBubble assets
+      $ case jump of
+        Just (InitJump m) -> line [m, mousePosition]
+        Nothing -> blank
+        :
+        -- player sprite
+        characterBubble assets
         : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
         :
         -- other stuff in the scene
