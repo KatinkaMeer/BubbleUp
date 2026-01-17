@@ -3,7 +3,7 @@
 module View (render) where
 
 import Graphics.Gloss (
-  Picture,
+  Picture (Pictures),
   black,
   blank,
   circleSolid,
@@ -14,12 +14,17 @@ import Graphics.Gloss (
  )
 
 import Model (
-  Assets (Assets, player),
+  Assets (..),
   GlobalState (..),
   Object (Object, position),
   Screen (..),
   UiState (UiState, assets),
-  World (World, character),
+  World (..),
+  objectDataToPicture,
+ )
+import View.Frog (
+  FrogState (FrogState, eyesOpen, mouthOpen),
+  frogSprite,
  )
 
 render :: GlobalState -> Picture
@@ -30,7 +35,7 @@ render GlobalState {..} = case screen of
 
 renderWorld :: Assets -> World -> Picture
 renderWorld
-  Assets {..}
+  assets
   World
     { character = Object {position = (x, y)},
       ..
@@ -38,11 +43,12 @@ renderWorld
     pictures
       $
       -- player sprite
-      player
+      bubble assets
+        : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
         :
         -- other stuff in the scene
         map
           (translate (-x) (-y))
-          [ translate 80 40 $ circleSolid 30,
-            translate (-250) 0 $ rectangleSolid 100 1000
-          ]
+          ( translate (-250) 0 (rectangleSolid 100 1000)
+              : map (objectDataToPicture assets) objects
+          )

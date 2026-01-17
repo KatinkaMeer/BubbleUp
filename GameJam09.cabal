@@ -58,13 +58,18 @@ library
   exposed-modules:
     Model,
     View,
-    Controller
+    Controller,
+    Sound
+  other-modules:
+    View.Frog
   hs-source-dirs:
     src
   build-depends:
     base ^>=4.18.3.0,
     extra,
-    gloss
+    gloss,
+    ALUT,
+    random
   default-language: GHC2021
 
 executable GameJam09
