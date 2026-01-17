@@ -68,6 +68,7 @@ data Assets = Assets
 data World = World
   { character :: !Object,
     characterStatus :: !CharacterStatus,
+    collisionIndex :: Maybe Int,
     viewport :: !Object,
     jump :: !(Maybe Jump),
     pressedKeys :: ![SpecialKey],

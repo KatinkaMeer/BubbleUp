@@ -3,7 +3,7 @@
 
 module Controller where
 
-import Data.List (delete)
+import Data.List (delete, findIndex)
 import Data.Maybe (isNothing)
 import Data.Tuple.Extra (first, second)
 import Graphics.Gloss.Interface.Pure.Game (
@@ -93,6 +93,7 @@ update t world@World {character = me@(Object (x, y) _), assets = a@Assets {..}, 
                 )
           },
       characterStatus = updateCharacterStatus,
+      collisionIndex = findIndex collisionWithPlayer objects,
       assets = case updateCharacterStatus of
         CharacterInBubble toPop
           -- cannot stack color, e.g. color red $ color yellow ...
@@ -119,3 +120,5 @@ update t world@World {character = me@(Object (x, y) _), assets = a@Assets {..}, 
       ( if abs xCoord > fst levelBoundary then x else xCoord,
         if yCoord < snd levelBoundary then y else yCoord
       )
+    -- CHANGE THIS
+    collisionWithPlayer (_, Object {position = (oX, oY)}) = sqrt ((oX - x) ^ 2 + (oY - y) ^ 2) <= 20
