@@ -6,5 +6,8 @@
 .vscode/
 dist-newstyle/
 dist/
+flake.lock
+result
 stack.yaml.lock
 *.kra~
+.idea
