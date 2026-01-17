@@ -18,8 +18,11 @@ module Model (
 )
 where
 
+import Data.Map (Map)
 import Graphics.Gloss (Picture (Pictures), Point, Vector, translate)
 import Graphics.Gloss.Interface.Pure.Game (SpecialKey)
+
+import Data.Map qualified as M
 
 data GlobalState = GlobalState
   { uiState :: !UiState,
@@ -111,11 +114,12 @@ data Assets = Assets
 data World = World
   { character :: !Object,
     characterStatus :: !CharacterStatus,
-    collisionIndex :: !(Maybe Int),
+    collisions :: ![Integer],
     elapsedTime :: !Float,
     viewport :: !Object,
     jump :: !(Maybe Jump),
-    objects :: ![(ObjectType, Object)]
+    objects :: !(Map Integer (ObjectType, Object)),
+    nextId :: Integer
   }
 
 objectDataToPicture :: Assets -> (ObjectType, Object) -> Picture
@@ -128,9 +132,10 @@ initialWorld =
   World
     { character = Object (0, 0) (0, 0),
       characterStatus = CharacterInBubble 5,
-      collisionIndex = Nothing,
+      collisions = [],
       elapsedTime = 0,
       viewport = Object (0, 0) (0, 0),
       jump = Nothing,
-      objects = [(Bubble, Object {position = (80, 40), velocity = (0, 0)})]
+      objects = M.singleton 1 (Bubble, Object {position = (80, 40), velocity = (0, 0)}),
+      nextId = 2
     }
