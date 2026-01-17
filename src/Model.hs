@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Model (
   CharacterStatus (..),
   Jump (..),
@@ -7,10 +9,11 @@ module Model (
   characterInBalloon,
   characterInBubble,
   initialWorld,
+  objectDataToPicture,
 )
 where
 
-import Graphics.Gloss (Picture (Pictures), Point, Vector)
+import Graphics.Gloss (Picture (Pictures), Point, Vector, translate)
 import Graphics.Gloss.Interface.Pure.Game (SpecialKey)
 
 data Object = Object
@@ -60,6 +63,11 @@ data World = World
     assets :: !Assets
   }
 
+objectDataToPicture :: Assets -> (ObjectType, Object) -> Picture
+objectDataToPicture Assets {..} (oType, Object {..}) = uncurry translate position $ case oType of
+  Bubble -> bubble
+  _ -> undefined
+
 initialWorld :: Assets -> World
 initialWorld assets =
   World
@@ -68,6 +76,6 @@ initialWorld assets =
       viewport = Object (0, 0) (0, 0),
       jump = Nothing,
       pressedKeys = [],
-      objects = [],
+      objects = [(Bubble, Object {position = (80, 40), velocity = (0, 0)})],
       assets = assets
     }

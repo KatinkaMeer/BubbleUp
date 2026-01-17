@@ -19,7 +19,8 @@ import View.Frog (
 import Model (
   Assets (..),
   Object (Object, position),
-  World (World, assets, character),
+  World (..),
+  objectDataToPicture,
  )
 
 render :: World -> Picture
@@ -38,6 +39,6 @@ render
         -- other stuff in the scene
         map
           (translate (-x) (-y))
-          [ translate 80 40 $ circleSolid 30,
-            translate (-250) 0 $ rectangleSolid 100 1000
-          ]
+          ( translate (-250) 0 (rectangleSolid 100 1000)
+              : map (objectDataToPicture assets) objects
+          )
