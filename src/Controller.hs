@@ -19,6 +19,7 @@ import Graphics.Gloss.Interface.Pure.Game (
   yellow,
  )
 
+import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
   (+),
  )
@@ -128,7 +129,9 @@ updateWorld
               velocity = (vx', vy')
             },
         characterStatus = updateCharacterStatus,
-        collisionIndex = findIndex collisionWithPlayer objects
+        collisions = M.keys $ M.filter collisionWithPlayer objects,
+        -- TODO: use and increment or increment every update
+        nextId = nextId
       }
     where
       modifier

@@ -13,6 +13,8 @@ import Graphics.Gloss (
   translate,
  )
 
+import Data.Map qualified as M
+
 import Model (
   Assets (..),
   CharacterStatus (..),
@@ -41,7 +43,8 @@ renderWorld
     { character = Object {position = (x, y)},
       ..
     } =
-    pictures $
+    pictures
+      $
       -- player sprite
       characterBubble assets
         : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
@@ -50,7 +53,7 @@ renderWorld
         map
           (translate (-x) (-y))
           ( translate (-250) 0 (rectangleSolid 100 1000)
-              : map (objectDataToPicture assets) objects
+              : M.elems (M.map (objectDataToPicture assets) objects)
           )
     where
       characterBubble = case characterStatus of
