@@ -2,22 +2,20 @@
 
 module View (render) where
 
-import Graphics.Gloss (
-  Picture,
-  black,
-  circleSolid,
-  color,
-  pictures,
-  rectangleSolid,
-  translate,
- )
-
-import Model (Object (Object, position), World (World, character, assets), Assets (Assets, player))
+import Graphics.Gloss
+  ( Picture,
+    black,
+    circleSolid,
+    color,
+    pictures,
+    rectangleSolid,
+    translate,
+  )
+import Model (Assets (Assets, player), Object (Object, position), World (World, assets, character))
 
 render :: World -> Picture
-render World {character = Object {position = (x, y)}, assets = Assets {player = playerSprite, ..},..} =
-  pictures
-    $
+render World {character = Object {position = (x, y)}, assets = Assets {player = playerSprite, ..}, ..} =
+  pictures $
     -- player sprite
     playerSprite
       :

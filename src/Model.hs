@@ -1,12 +1,13 @@
-module Model (
-  Jump (..),
-  Object (..),
-  World (..),
-  Assets (..),
-  initialWorld,
-) where
+module Model
+  ( Jump (..),
+    Object (..),
+    World (..),
+    Assets (..),
+    initialWorld,
+  )
+where
 
-import Graphics.Gloss (Point, Vector, Picture)
+import Graphics.Gloss (Picture, Point, Vector)
 import Graphics.Gloss.Interface.Pure.Game (SpecialKey)
 
 data Object = Object
@@ -24,7 +25,7 @@ data Jump = Jump
 data MovingObject
 
 data Assets = Assets
- {  player :: Picture,
+  { player :: Picture,
     bubble :: Picture
   }
 
