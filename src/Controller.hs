@@ -152,4 +152,5 @@ updateWorld
           if yCoord < snd levelBoundary then y else yCoord
         )
       -- CHANGE THIS
-      collisionWithPlayer (_, Object {position = (oX, oY)}) = sqrt ((oX - x) ^ 2 + (oY - y) ^ 2) <= 20
+      collisionWithPlayer (_, Object {position = (oX, oY)}) =
+        sqrt ((oX - x) ^ 2 + (oY - y) ^ 2) <= 20
