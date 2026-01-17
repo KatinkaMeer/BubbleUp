@@ -32,7 +32,9 @@ data Assets = Assets
 data World = World
   { character :: !Object,
     characterInBubble :: !Bool,
+    characterAltitude :: Float,
     viewport :: !Object,
+    windowSize :: (Int, Int), --Please review type. Vector appears unsuitable due to gloss type requiremnts, see InWindow etc 
     jump :: !(Maybe Jump),
     pressedKeys :: ![SpecialKey],
     objects :: ![(ObjectType, Object)],
@@ -45,6 +47,8 @@ initialWorld assets =
     { character = Object (0, 0) (0, 0),
       characterInBubble = True,
       viewport = Object (0, 0) (0, 0),
+      windowSize = (1280, 720),
+      characterAltitude = 0,
       jump = Nothing,
       pressedKeys = [],
       objects = [],

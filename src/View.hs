@@ -25,3 +25,4 @@ render World {character = Object {position = (x, y)}, assets = Assets {player = 
         [ translate 80 40 $ circleSolid 30,
           translate (-250) 0 $ rectangleSolid 100 1000
         ]
+       
