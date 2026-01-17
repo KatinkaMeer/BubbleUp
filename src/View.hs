@@ -5,6 +5,7 @@ module View (render) where
 import Graphics.Gloss (
   Picture,
   black,
+  blank,
   circleSolid,
   color,
   pictures,
@@ -14,21 +15,30 @@ import Graphics.Gloss (
 
 import Model (
   Assets (Assets, player),
+  GlobalState (..),
   Object (Object, position),
-  World (World, assets, character),
+  Screen (..),
+  UiState (UiState, assets),
+  World (World, character),
  )
 
-render :: World -> Picture
-render
+render :: GlobalState -> Picture
+render GlobalState {..} = case screen of
+  StartScreen -> blank
+  GameScreen world -> renderWorld (assets uiState) world
+  HighScoreScreen -> blank
+
+renderWorld :: Assets -> World -> Picture
+renderWorld
+  Assets {..}
   World
     { character = Object {position = (x, y)},
-      assets = Assets {player = playerSprite, ..},
       ..
     } =
     pictures
       $
       -- player sprite
-      playerSprite
+      player
         :
         -- other stuff in the scene
         map

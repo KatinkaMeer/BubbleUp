@@ -12,26 +12,46 @@ import Graphics.Gloss.Interface.Pure.Game (
   SpecialKey (KeyDown, KeyLeft, KeyRight, KeyUp),
  )
 
-import Model (Object (Object, position), World (..), CharacterStatus (..))
+import Model (
+  CharacterStatus (..),
+  GlobalState (..),
+  Object (Object, position),
+  Screen (..),
+  UiState (..),
+  World (..),
+  initialWorld,
+ )
 
-handleInput :: Event -> World -> World
-handleInput event world@World {..} =
+handleInput :: Event -> GlobalState -> GlobalState
+handleInput event state@GlobalState {..} =
   case event of
     EventKey (SpecialKey k) action _ _ ->
-      world
-        { pressedKeys = case action of
-            Down -> k : pressedKeys
-            Up -> delete k pressedKeys
+      state
+        { uiState =
+            uiState
+              { pressedKeys = case action of
+                  Down -> k : pressedKeys uiState
+                  Up -> delete k $ pressedKeys uiState
+              }
         }
-    _ -> world
+    _ -> state
 
 moveSpeed, floatSpeed, fallSpeed :: Float
 moveSpeed = 300
 floatSpeed = 60
 fallSpeed = 200
 
-update :: Float -> World -> World
-update t world@World {character = me@(Object (x, y) _), ..} =
+update :: Float -> GlobalState -> GlobalState
+update t state@GlobalState {..} =
+  state
+    { screen = case screen of
+        StartScreen -> GameScreen initialWorld
+        GameScreen world -> GameScreen $ updateWorld t uiState world
+        HighScoreScreen -> StartScreen
+    }
+
+updateWorld :: Float -> UiState -> World -> World
+updateWorld t UiState {..} world@World {character = me@(Object (x, y) _), ..} =
   world
     { character =
         me

@@ -25,7 +25,7 @@ main =
       (InWindow "GlossyGaming" (500, 500) (10, 10))
       green
       60
-      (initialWorld assets)
+      (initialGlobalState assets)
       render
       handleInput
       update
