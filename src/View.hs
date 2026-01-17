@@ -11,15 +11,15 @@ import Graphics.Gloss (
   rectangleSolid,
   translate,
  )
+import View.Frog (
+  FrogState (FrogState, eyesOpen, mouthOpen),
+  frogSprite,
+ )
 
 import Model (
   Assets (..),
   Object (Object, position),
   World (World, assets, character),
- )
-import View.Frog (
-  FrogState(FrogState, eyesOpen, mouthOpen),
-  frogSprite
  )
 
 render :: World -> Picture
