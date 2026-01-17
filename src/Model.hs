@@ -1,10 +1,10 @@
-module Model
-  ( Jump (..),
-    Object (..),
-    World (..),
-    Assets (..),
-    initialWorld,
-  )
+module Model (
+  Jump (..),
+  Object (..),
+  World (..),
+  Assets (..),
+  initialWorld,
+)
 where
 
 import Graphics.Gloss (Picture, Point, Vector)
