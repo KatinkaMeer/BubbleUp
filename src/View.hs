@@ -20,6 +20,7 @@ import Model (
   Assets (..),
   Object (Object, position),
   World (..),
+  objectDataToPicture,
  )
 
 render :: World -> Picture
@@ -38,6 +39,6 @@ render
         -- other stuff in the scene
         map
           (translate (-x) (-y))
-          [ let (a,b) = position (snd $ head objects) in translate a b bubble,
-            translate (-250) 0 $ rectangleSolid 100 1000
-          ]
+          ( translate (-250) 0 (rectangleSolid 100 1000)
+              : map (objectDataToPicture assets) objects
+          )
