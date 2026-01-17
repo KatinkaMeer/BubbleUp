@@ -1,4 +1,5 @@
 module Model (
+  CharacterStatus (..),
   Jump (..),
   Object (..),
   World (..),
