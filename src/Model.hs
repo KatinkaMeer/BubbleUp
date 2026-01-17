@@ -69,7 +69,7 @@ data Assets = Assets
 data World = World
   { character :: !Object,
     characterStatus :: !CharacterStatus,
-    collisionIndex :: [Integer],
+    collisions :: [Integer],
     viewport :: !Object,
     jump :: !(Maybe Jump),
     pressedKeys :: ![SpecialKey],
@@ -88,6 +88,7 @@ initialWorld assets =
   World
     { character = Object (0, 0) (0, 0),
       characterStatus = CharacterInBubble 5,
+      collisions = [],
       viewport = Object (0, 0) (0, 0),
       jump = Nothing,
       pressedKeys = [],

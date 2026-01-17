@@ -94,7 +94,7 @@ update t world@World {character = me@(Object (x, y) _), assets = a@Assets {..}, 
                 )
           },
       characterStatus = updateCharacterStatus,
-      collisionIndex = M.keys $ M.filter (not . collisionWithPlayer) objects,
+      collisions = M.keys $ M.filter (not . collisionWithPlayer) objects,
       assets = case updateCharacterStatus of
         CharacterInBubble toPop
           -- cannot stack color, e.g. color red $ color yellow ...
