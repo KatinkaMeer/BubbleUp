@@ -1,21 +1,26 @@
 module GlossyRuler where
 import Graphics.Gloss
+    ( color, pictures, rectangleSolid, translate, Color, Picture )
 
-drawRuler :: (Float, Float) -> (Float, Float) -> Float -> Float -> Color -> Color -> Color -> Picture
+drawRuler :: (Float, Float) -> (Float, Float) -> Int -> Float -> Color -> Color -> Color -> Picture
 drawRuler position dimensions numTickMarks measurement baseColor tickColor measurementColor =
-     pictures $ map (translate posx posy) [base, measurementMaker] ++ tickMarks
+     pictures $ map (translate posx posy) ([base, measurementMaker] ++ tickMarks)
     where
         posx = fst position
         posy = snd position
         dimx = fst dimensions
         dimy = snd dimensions
         base = color baseColor $ rectangleSolid dimx dimy
-        tickMarkDimensions = (50, 10)
+        tickMarkDimensions = (10, 10)
         tickMarkDimx = fst tickMarkDimensions
         tickMarkDimy = snd tickMarkDimensions
         tickMarkOffset = - (tickMarkDimx / 4)
         tick = rectangleSolid tickMarkDimx tickMarkDimy
-        tickStep = dimy / numTickMarks
-        tickSteps = [tickStep .. tickStep * numTickMarks]
-        tickMarks = map (\tickStep -> translate (- (tickMarkDimx / 2)) tickStep $ color measurementColor tick) tickSteps
-        measurementMaker = translate (- (tickMarkDimx / 2) + tickMarkOffset) measurement $ color measurementColor tick
+        tickStep = dimy / fromIntegral numTickMarks
+        tickSteps = take numTickMarks $ iterate (*tickStep) 1
+        tickMarks = map (\tickStep -> translate (dimx - (tickMarkDimx / 2)) tickStep $ color tickColor tick) tickSteps
+        measurementMakerDimensions = (50, 10)
+        measurementMarkerOffset = - (measurementMakerDimx / 4)
+        measurementMakerDimx = fst measurementMakerDimensions
+        measurementMakerDimy = snd measurementMakerDimensions
+        measurementMaker = translate (- (measurementMakerDimx / 2) + measurementMarkerOffset) (measurement - dimy / 2) $ color measurementColor $ rectangleSolid measurementMakerDimx measurementMakerDimy

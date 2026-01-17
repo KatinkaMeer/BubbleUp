@@ -29,7 +29,7 @@ render World {character = Object {position = (x, y)}, assets = Assets {player = 
       rulerDimensionsY = snd rulerDimensions
       rulerPosition = rightBorderPosition
       rulerNumberOfTickMarks = 10
-      rulerIndicatedMeasurement = 0
+      rulerIndicatedMeasurement = windowHeight / 2
       in
         drawRuler rulerPosition rulerDimensions rulerNumberOfTickMarks rulerIndicatedMeasurement white yellow red
       :
