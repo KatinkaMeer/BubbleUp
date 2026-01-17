@@ -5,6 +5,7 @@ module View (render) where
 import Data.Maybe
 import Graphics.Gloss (
   Picture (Pictures),
+  Vector,
   black,
   blank,
   circleSolid,
@@ -14,14 +15,12 @@ import Graphics.Gloss (
   rectangleSolid,
   text,
   translate,
-  Vector,
  )
 
 import Data.Map qualified as M
-
-import Graphics.Gloss.Data.Point.Arithmetic qualified as P(
-  (-),
+import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
   (*),
+  (-),
  )
 
 import Model (
@@ -40,11 +39,11 @@ import View.Frog (
   frogSprite,
  )
 
-scalarProduct :: Vector-> Vector -> Float
-scalarProduct (x1,y1) (x2,y2) = x1*x2 + y1*y2
+scalarProduct :: Vector -> Vector -> Float
+scalarProduct (x1, y1) (x2, y2) = x1 * x2 + y1 * y2
 
 getNormVector :: Vector -> Vector
-getNormVector v =  (1 / (sqrt $ scalarProduct v v)) P.* v
+getNormVector v = (1 / sqrt (scalarProduct v v)) P.* v
 
 render :: GlobalState -> Picture
 render GlobalState {..} = case screen of
@@ -61,8 +60,8 @@ renderWorld
     } =
     pictures
       $ case jump of
-        --TODO add vectorLength variable infront that depends on strength
-        Just (InitJump m) -> line [200 P.* getNormVector (m P.- mousePosition), (0,0)]
+        -- TODO add vectorLength variable infront that depends on strength
+        Just (InitJump m) -> line [200 P.* getNormVector (m P.- mousePosition), (0, 0)]
         Nothing -> blank
         :
         -- player sprite
