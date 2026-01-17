@@ -12,7 +12,13 @@ import Graphics.Gloss.Interface.Pure.Game (
   SpecialKey (KeyDown, KeyLeft, KeyRight, KeyUp),
  )
 
-import Model (CharacterStatus (..), Object (Object, position), World (..), characterInBalloon, characterInBubble)
+import Model (
+  CharacterStatus (..),
+  Object (Object, position),
+  World (..),
+  characterInBalloon,
+  characterInBubble,
+ )
 
 handleInput :: Event -> World -> World
 handleInput event world@World {..} =
