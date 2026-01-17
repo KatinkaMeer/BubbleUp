@@ -10,8 +10,11 @@ import Graphics.Gloss.Interface.Pure.Game (
   Key (SpecialKey),
   KeyState (Down, Up),
   SpecialKey (KeyDown, KeyLeft, KeyRight, KeyUp),
+  blank,
+  circleSolid,
   color,
   red,
+  yellow,
  )
 
 import Model (
@@ -50,7 +53,14 @@ update t world@World {character = me@(Object (x, y) _), assets = a@Assets {..}, 
               )
           },
       characterStatus = updateCharacterStatus,
-      assets = a {player = color red player}
+      assets = case updateCharacterStatus of
+        CharacterInBubble toPop
+          -- cannot stack color, e.g. color red $ color yellow ...
+          -- is just color yellow ...
+          | toPop < 3 -> a {bubble = color red $ circleSolid 30}
+          | toPop < 7 -> a {bubble = color yellow bubble}
+        PlainCharacter -> a {bubble = blank}
+        _ -> a
     }
   where
     modifier

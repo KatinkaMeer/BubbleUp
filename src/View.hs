@@ -32,8 +32,8 @@ render
     pictures
       $
       -- player sprite
-      playerSprite
-    : frogSprite assets FrogState{ eyesOpen = True, mouthOpen = False }
+      bubble
+        : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
         :
         -- other stuff in the scene
         map
