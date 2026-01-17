@@ -19,6 +19,10 @@ import Graphics.Gloss.Interface.Pure.Game (
   yellow,
  )
 
+import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
+  (+),
+ )
+
 import Model (
   Assets (..),
   CharacterStatus (..),
@@ -27,9 +31,6 @@ import Model (
   World (..),
   characterInBalloon,
   characterInBubble,
- )
-import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
-  (+),
  )
 
 handleInput :: Event -> World -> World
