@@ -6,6 +6,7 @@ module Model (
   Object (..),
   World (..),
   Assets (..),
+  characterFloats,
   characterInBalloon,
   characterInBubble,
   initialWorld,
@@ -48,6 +49,11 @@ characterInBalloon :: Float -> CharacterStatus
 characterInBalloon t
   | t <= 0 = PlainCharacter
   | otherwise = CharacterInBalloon t
+
+characterFloats :: CharacterStatus -> Bool
+characterFloats (CharacterInBalloon _) = True
+characterFloats (CharacterInBubble _) = True
+characterFloats _ = False
 
 data Assets = Assets
   { player :: !Picture,

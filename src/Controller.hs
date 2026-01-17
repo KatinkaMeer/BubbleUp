@@ -29,6 +29,7 @@ import Model (
   Jump (..),
   Object (..),
   World (..),
+  characterFloats,
   characterInBalloon,
   characterInBubble,
  )
@@ -44,11 +45,11 @@ handleInput event world@World {..} =
         }
     EventKey (MouseButton LeftButton) Down _ mpos
       | isNothing jump,
-        characterStatus `elem` [CharacterInBalloon, CharacterInBubble] ->
+        characterFloats characterStatus ->
           world {jump = Just InitJump {mousePoint = mpos}}
     EventKey (MouseButton LeftButton) Up _ mpos
       | Just InitJump {..} <- jump,
-        characterStatus `elem` [CharacterInBalloon, CharacterInBubble] ->
+        characterFloats characterStatus ->
           let
             -- TODO add minimum velocity and maximum velocity as variables
             rposx = fst mousePoint
