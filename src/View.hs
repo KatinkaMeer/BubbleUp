@@ -40,8 +40,7 @@ renderWorld
     { character = Object {position = (x, y)},
       ..
     } =
-    pictures
-      $
+    pictures $
       -- player sprite
       bubble assets
         : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}

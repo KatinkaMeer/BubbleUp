@@ -68,8 +68,8 @@ handleInput event state@GlobalState {..} =
             rposy = snd mousePoint
             mposx = fst mpos
             mposy = snd mpos
-            vx = mposx - rposx
-            vy = mposy - rposy
+            vx = 100 * (rposx - mposx)
+            vy = 100 * (rposy - mposx)
             v2 = vx * vx + vy * vy
             rv = sqrt $ v2 / max 1 (min v2 100)
             vx' = vx / rv
@@ -84,6 +84,7 @@ handleInput event state@GlobalState {..} =
                             { velocity = velocity character P.+ (vx', vy')
                             -- galilei
                             },
+                        characterStatus = PlainCharacter,
                         jump = Nothing -- new Jump possible
                       }
               }
@@ -93,10 +94,14 @@ handleInput event state@GlobalState {..} =
 levelBoundary :: (Float, Float)
 levelBoundary = (500, -500)
 
-moveSpeed, floatSpeed, fallSpeed :: Float
+moveSpeed, floatSpeed, fallSpeed, vmax :: Float
 moveSpeed = 300
 floatSpeed = 60
 fallSpeed = 200
+vmax = 300
+
+betweenSpeed :: Float -> Float -> Float
+betweenSpeed vmax v = max (-vmax) (min vmax v)
 
 update :: Float -> GlobalState -> GlobalState
 update t state@GlobalState {..} =
@@ -111,15 +116,16 @@ updateWorld :: Float -> UiState -> World -> World
 updateWorld
   t
   UiState {..}
-  world@World {character = me@(Object (x, y) _), ..} =
+  world@World {character = me@(Object (x, y) (vx, vy)), ..} =
     world
       { character =
           me
             { position =
                 coordinateClamp
-                  ( x + moveSpeed * t * modifier,
-                    y + yChange
-                  )
+                  ( x + moveSpeed * t * modifier + vx' * t,
+                    y + vy' * t
+                  ),
+              velocity = (vx', vy')
             },
         characterStatus = updateCharacterStatus,
         collisionIndex = findIndex collisionWithPlayer objects
@@ -139,11 +145,10 @@ updateWorld
         | KeyLeft `elem` pressedKeys = -1
         | KeyRight `elem` pressedKeys = 1
         | otherwise = 0
-
-      (yChange, updateCharacterStatus) = case characterStatus of
-        CharacterInBalloon timer -> (2 * t * floatSpeed, characterInBalloon $ timerUpdate timer)
-        CharacterInBubble timer -> (t * floatSpeed, characterInBubble $ timerUpdate timer)
-        PlainCharacter -> ((-t) * fallSpeed, PlainCharacter)
+      (vx', vy', updateCharacterStatus) = case characterStatus of
+        CharacterInBalloon timer -> (vx, betweenSpeed vmax (vy + 2 * t * floatSpeed), characterInBalloon $ timerUpdate timer)
+        CharacterInBubble timer -> (vx, betweenSpeed vmax (vy + t * floatSpeed), characterInBubble $ timerUpdate timer)
+        PlainCharacter -> (vx, betweenSpeed vmax (vy - t * fallSpeed), PlainCharacter)
 
       timerUpdate = (- t)
 
