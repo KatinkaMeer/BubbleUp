@@ -3,6 +3,7 @@
 
 module Controller where
 
+import Data.Bifunctor (second)
 import Data.List (delete, find, findIndex)
 import Data.Map (lookup, member)
 import Data.Maybe (isNothing, listToMaybe)
@@ -23,9 +24,11 @@ import System.Exit (exitSuccess)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
+  (*),
   (+),
  )
 
+import Math
 import Model (
   Assets (..),
   CharacterStatus (..),
@@ -50,8 +53,7 @@ import Sound (
 
 handleInput :: Event -> GlobalState -> IO GlobalState
 handleInput event state@GlobalState {..} =
-  do
-    setMousePosition (mousePosFromEvent event)
+  setMousePosition (mousePosFromEvent event)
     <$> case event of
       EventKey (SpecialKey KeyEsc) Up _ _
         | StartScreen <- screen ->
@@ -90,12 +92,10 @@ handleInput event state@GlobalState {..} =
               rposy = snd mousePoint
               mposx = fst mpos
               mposy = snd mpos
-              vx = 1000 * (rposx - mposx)
-              vy = 1000 * (rposy - mposy)
-              v2 = vx * vx + vy * vy
-              rv = sqrt $ v2 / max 1 (min v2 1000000)
-              vx' = vx / rv
-              vy' = vy / rv
+              vx = rposx - mposx
+              vy = rposy - mposy
+              direction = getNormVector (vx, vy)
+              magnitude = vMaxScale * 0.005 * (scalarProduct (vx, vy) (vx, vy))
             in
               do
                 case characterStatus of
@@ -109,7 +109,7 @@ handleInput event state@GlobalState {..} =
                           world
                             { character =
                                 character
-                                  { velocity = velocity character P.+ (vx', vy')
+                                  { velocity = velocity character P.+ (3 * magnitude P.* direction)
                                   -- galilei
                                   },
                               characterStatus = PlainCharacter,
@@ -219,7 +219,7 @@ updateWorld
               characterStatus = updateCharacterStatus,
               jump = nextJump,
               -- remove objects colliding with player
-              objects = M.map (\(t, o) -> (t, updateMovement o)) (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
+              objects = M.map (Data.Bifunctor.second updateMovement) (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
               -- TODO: use and increment or increment every update
               nextId = nextId,
               bonusPoints = newBonusPoints,
