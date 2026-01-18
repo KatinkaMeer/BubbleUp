@@ -153,7 +153,9 @@ update :: Float -> GlobalState -> IO GlobalState
 update t state@GlobalState {..} = do
   nextScreen <- case screen of
     StartScreen -> pure StartScreen
-    GameScreen world -> GameScreen <$> updateWorld t uiState world
+    GameScreen world@World {character = Object {..}}
+      | snd position <= (snd levelBoundary + 10) -> pure StartScreen
+      | otherwise -> GameScreen <$> updateWorld t uiState world
     HighScoreScreen -> pure StartScreen
   pure $ state {screen = nextScreen}
 
