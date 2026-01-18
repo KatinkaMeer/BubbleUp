@@ -190,16 +190,16 @@ updateWorld
       newCollisions = M.keys $ M.filter collisionWithPlayer objects
     in
       do
-        nextJump <- case (characterStatus, updateCharacterStatus) of
+        (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
           (CharacterAtBalloon {}, PlainCharacter) ->
-            Nothing <$ playBalloonPopSound
+            (Nothing, bonusPoints) <$ playBalloonPopSound
           (PlainCharacter, CharacterAtBalloon {}) ->
-            Nothing <$ playBalloonInflateSound
+            (Nothing, bonusPoints) <$ playBalloonInflateSound
           (CharacterInBubble {}, PlainCharacter) ->
-            Nothing <$ playBubblePopSound
+            (Nothing, bonusPoints) <$ playBubblePopSound
           (PlainCharacter, CharacterInBubble {}) ->
-            Nothing <$ playBubblePopSound
-          _ -> pure jump
+            (Nothing, bonusPoints + 20) <$ playBubblePopSound
+          _ -> pure (jump, bonusPoints)
         pure
           world
             { character =
@@ -218,5 +218,5 @@ updateWorld
               objects = M.filterWithKey (\k _ -> k `notElem` newCollisions) objects,
               -- TODO: use and increment or increment every update
               nextId = nextId,
-              bonusPoints = bonusPoints
+              bonusPoints = newBonusPoints
             }
