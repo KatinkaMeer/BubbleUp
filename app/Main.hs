@@ -4,7 +4,6 @@ module Main where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (playIO)
-import Paths_GameJam09 (getDataFileName)
 
 import Controller
 import Model
@@ -16,28 +15,28 @@ initialWindowPosition = (10, 10)
 
 loadSprites :: IO Assets
 loadSprites = do
-  player <- loadBMP =<< getDataFileName "assets/sprite.bmp"
-  bubble <- loadBMP =<< getDataFileName "assets/bubble/bubble.bmp"
+  player <- loadBMP "./assets/sprite.bmp"
+  bubble <- loadBMP "./assets/bubble/bubble.bmp"
   -- placeholder
-  bubbleTimerAttention <- loadBMP =<< getDataFileName "assets/bubble/bubble.bmp"
+  bubbleTimerAttention <- loadBMP "./assets/bubble/bubble.bmp"
   -- placeholder
-  bubbleTimerDanger <- loadBMP =<< getDataFileName "assets/bubble/bubble.bmp"
-  frogBodyRight <- loadBMP =<< getDataFileName "assets/frog/layers/body-right.bmp"
-  frogBodyLeft <- loadBMP =<< getDataFileName "assets/frog/layers/body-left.bmp"
-  frogEyesOpenRight <- loadBMP =<< getDataFileName "assets/frog/layers/eyes-open-right.bmp"
-  frogEyesOpenLeft <- loadBMP =<< getDataFileName "assets/frog/layers/eyes-open-left.bmp"
-  frogEyesClosedRight <- loadBMP =<< getDataFileName "assets/frog/layers/eyes-closed-right.bmp"
-  frogEyesClosedLeft <- loadBMP =<< getDataFileName "assets/frog/layers/eyes-closed-left.bmp"
-  frogMouthRight <- loadBMP =<< getDataFileName "assets/frog/layers/mouth-right.bmp"
-  frogMouthLeft <- loadBMP =<< getDataFileName "assets/frog/layers/mouth-left.bmp"
-  cloud <- loadBMP =<< getDataFileName "assets/clouds/white.bmp"
-  ballonBlue <- loadBMP =<< getDataFileName "assets/ballony/blue.bmp"
-  ballonGreen <- loadBMP =<< getDataFileName "assets/ballony/green.bmp"
-  ballonPink <- loadBMP =<< getDataFileName "assets/ballony/pink.bmp"
-  ballonRed <- loadBMP =<< getDataFileName "assets/ballony/red.bmp"
-  ballonYellow <- loadBMP =<< getDataFileName "assets/ballony/yellow.bmp"
-  ground <- loadBMP =<< getDataFileName "assets/ballony/yellow.bmp"
-  titleScreen <- loadBMP =<< getDataFileName "assets/title_screen/title_screen.bmp"
+  bubbleTimerDanger <- loadBMP "./assets/bubble/bubble.bmp"
+  frogBodyRight <- loadBMP "./assets/frog/layers/body-right.bmp"
+  frogBodyLeft <- loadBMP "./assets/frog/layers/body-left.bmp"
+  frogEyesOpenRight <- loadBMP "./assets/frog/layers/eyes-open-right.bmp"
+  frogEyesOpenLeft <- loadBMP "./assets/frog/layers/eyes-open-left.bmp"
+  frogEyesClosedRight <- loadBMP "./assets/frog/layers/eyes-closed-right.bmp"
+  frogEyesClosedLeft <- loadBMP "./assets/frog/layers/eyes-closed-left.bmp"
+  frogMouthRight <- loadBMP "./assets/frog/layers/mouth-right.bmp"
+  frogMouthLeft <- loadBMP "./assets/frog/layers/mouth-left.bmp"
+  cloud <- loadBMP "./assets/clouds/white.bmp"
+  ballonBlue <- loadBMP "./assets/ballony/blue.bmp"
+  ballonGreen <- loadBMP "./assets/ballony/green.bmp"
+  ballonPink <- loadBMP "./assets/ballony/pink.bmp"
+  ballonRed <- loadBMP "./assets/ballony/red.bmp"
+  ballonYellow <- loadBMP "./assets/ballony/yellow.bmp"
+  ground <- loadBMP "./assets/ballony/yellow.bmp"
+  titleScreen <- loadBMP "./assets/title_screen/title_screen.bmp"
   pure
     Assets
       { player,
