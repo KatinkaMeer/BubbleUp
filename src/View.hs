@@ -3,6 +3,7 @@
 module View (render) where
 
 import Data.Bifunctor (Bifunctor (second))
+import Data.Fixed
 import Data.Maybe
 import Graphics.Gloss (
   Picture (Pictures),
@@ -18,7 +19,7 @@ import Graphics.Gloss (
   text,
   translate,
  )
-import Graphics.Gloss.Data.ViewPort (ViewPort, applyViewPortToPicture)
+import Graphics.Gloss.Data.ViewPort (ViewPort (ViewPort), applyViewPortToPicture, viewPortTranslate)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
@@ -76,14 +77,16 @@ renderWorld
   assets
   World
     { character = Object {position = (x, y)},
+      viewport = viewport@ViewPort {viewPortTranslate},
       ..
     } =
     applyViewPortToPicture viewport
       $ pictures
-      $ case jump of
-        -- TODO add vectorLength variable infront that depends on strength
-        Just (InitJump m) -> line [(x, y), resizeVectorFactor 60 300 (m P.- mousePosition) P.* getNormVector (m P.- mousePosition)]
-        Nothing -> blank
+      $ generateClouds viewPortTranslate
+        : case jump of
+          -- TODO add vectorLength variable infront that depends on strength
+          Just (InitJump m) -> line [(x, y), resizeVectorFactor 60 300 (m P.- mousePosition) P.* getNormVector (m P.- mousePosition)]
+          Nothing -> blank
         : translate
           x
           y
@@ -96,7 +99,6 @@ renderWorld
                   ++ [frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}]
               )
           )
-        : translate 500 500 (cloud assets)
         : map renderObject (M.elems objects)
     where
       characterBubble = case characterStatus of
@@ -113,3 +115,8 @@ renderWorld
               Bubble -> bubble assets
               Balloon -> circleSolid 30
           )
+
+      -- using prime factors and the screen size as modulo 'ransomly' scatters the clouds can
+      generateClouds translation =
+        pictures
+          $ map (\i -> translate (mod' (137 * i) 1280 - 740) (mod' (271 * i) 720 - 360) (cloud assets)) [1 .. 7]
