@@ -105,7 +105,7 @@ handleInput event state@GlobalState {..} =
                 case characterStatus of
                   CharacterAtBalloon {} -> playBalloonPopSound
                   CharacterInBubble {} -> playBubblePopSound
-                  PlainCharacter -> pure ()
+                  PlainCharacter {} -> pure ()
                 pure
                   state
                     { screen =
@@ -116,7 +116,7 @@ handleInput event state@GlobalState {..} =
                                   { velocity = velocity character P.+ (3 * magnitude P.* direction)
                                   -- galilei
                                   },
-                              characterStatus = PlainCharacter,
+                              characterStatus = PlainCharacter 0,
                               jump = Nothing -- new Jump possible
                             }
                     }
@@ -163,8 +163,12 @@ update :: Float -> GlobalState -> IO GlobalState
 update t state@GlobalState {..} = do
   nextScreen <- case screen of
     StartScreen -> pure StartScreen
-    GameScreen world -> GameScreen <$> updateWorld t uiState world
-    HighScoreScreen -> pure StartScreen
+    GameScreen world ->
+      ( case characterStatus world of
+          PlainCharacter timer -> if timer <= -5 then pure HighScoreScreen else GameScreen <$> updateWorld t uiState world
+          _ -> GameScreen <$> updateWorld t uiState world
+      )
+    HighScoreScreen -> pure HighScoreScreen
   pure $ state {screen = nextScreen}
 
 updateWorld :: Float -> UiState -> World -> IO World
@@ -180,12 +184,12 @@ updateWorld
       (vx', vy', updateCharacterStatus) = case characterStatus of
         CharacterAtBalloon timer -> (0.985 * betweenSpeed vBalloonMax vx, betweenSpeed vBalloonMax (vy + 2 * t * floatSpeed), characterInBalloon $ timerUpdate timer)
         CharacterInBubble timer -> (0.98 * betweenSpeed vBubbleMax vx, betweenSpeed vBubbleMax (vy + t * floatSpeed), characterInBubble $ timerUpdate timer)
-        PlainCharacter ->
+        PlainCharacter timer ->
           ( 0.99 * betweenSpeed vPlainCharacterMax vx,
             betweenSpeed vPlainCharacterMax (vy - t * fallSpeed),
             -- only care about first collision
             case listToMaybe newCollisions >>= \k -> M.lookup k objects of
-              Nothing -> PlainCharacter
+              Nothing -> PlainCharacter $ timerUpdate timer
               Just (Bubble, _) -> CharacterInBubble 10
               Just (Balloon, _) -> CharacterAtBalloon 5
           )
@@ -214,13 +218,13 @@ updateWorld
     in
       do
         (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
-          (CharacterAtBalloon {}, PlainCharacter) ->
+          (CharacterAtBalloon {}, PlainCharacter {}) ->
             (Nothing, bonusPoints) <$ playBalloonPopSound
-          (PlainCharacter, CharacterAtBalloon {}) ->
+          (PlainCharacter {}, CharacterAtBalloon {}) ->
             (Nothing, bonusPoints) <$ playBalloonInflateSound
-          (CharacterInBubble {}, PlainCharacter) ->
+          (CharacterInBubble {}, PlainCharacter {}) ->
             (Nothing, bonusPoints) <$ playBubblePopSound
-          (PlainCharacter, CharacterInBubble {}) ->
+          (PlainCharacter {}, CharacterInBubble {}) ->
             (Nothing, bonusPoints + 20) <$ playBubblePopSound
           _ -> pure (jump, bonusPoints)
         pure

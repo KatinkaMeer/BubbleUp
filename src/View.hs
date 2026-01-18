@@ -93,7 +93,7 @@ renderWorld
               ( ( case characterStatus of
                     CharacterAtBalloon _ -> [circleSolid 30] -- placeholder
                     CharacterInBubble _ -> [characterBubble assets]
-                    PlainCharacter -> []
+                    PlainCharacter _ -> []
                 )
                   ++ [frogSprite assets FrogState {eyesOpen = True, mouthOpen = False, directionRight = vx >= 0}]
               )
