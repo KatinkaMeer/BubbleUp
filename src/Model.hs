@@ -21,6 +21,7 @@ where
 
 import Data.Map (Map)
 import Graphics.Gloss (Picture (Pictures), Point, Vector, translate)
+import Graphics.Gloss.Data.ViewPort (ViewPort (ViewPort, viewPortRotate, viewPortScale, viewPortTranslate))
 import Graphics.Gloss.Interface.Pure.Game (SpecialKey)
 
 import Data.Map qualified as M
@@ -117,7 +118,7 @@ data World = World
     characterStatus :: !CharacterStatus,
     collisions :: ![Integer],
     elapsedTime :: !Float,
-    viewport :: !Object,
+    viewport :: !ViewPort,
     jump :: !(Maybe Jump),
     mousePosition :: !(Float, Float),
     objects :: !(Map Integer (ObjectType, Object)),
@@ -137,7 +138,12 @@ initialWorld =
       characterStatus = CharacterInBubble 5,
       collisions = [],
       elapsedTime = 0,
-      viewport = Object (0, 0) (0, 0),
+      viewport =
+        ViewPort
+          { viewPortTranslate = (0.0, 0.0),
+            viewPortRotate = 0,
+            viewPortScale = 1.0
+          },
       jump = Nothing,
       mousePosition = (0, 0),
       objects = M.singleton 1 (Bubble, Object {position = (80, 40), velocity = (0, 0)}),
