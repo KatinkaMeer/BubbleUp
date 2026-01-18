@@ -58,7 +58,8 @@ library
   exposed-modules:
     Model,
     View,
-    Controller
+    Controller,
+    GlossyRuler
   hs-source-dirs:
     src
   build-depends:
