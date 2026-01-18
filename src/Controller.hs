@@ -4,10 +4,12 @@
 module Controller where
 
 import Data.Bifunctor (Bifunctor (bimap))
+import Data.Fixed (mod')
 import Data.List (delete, find, findIndex)
 import Data.Map (lookup, member)
 import Data.Maybe (isNothing, listToMaybe)
 import Data.Tuple.Extra (first, second)
+import Graphics.Gloss.Data.ViewPort (ViewPort (..))
 import Graphics.Gloss.Interface.Pure.Game (
   Event (EventKey, EventMotion, EventResize),
   Key (MouseButton, SpecialKey),
@@ -24,9 +26,11 @@ import System.Exit (exitSuccess)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
+  (*),
   (+),
  )
 
+import Math
 import Model (
   Assets (..),
   CharacterStatus (..),
@@ -51,8 +55,7 @@ import Sound (
 
 handleInput :: Event -> GlobalState -> IO GlobalState
 handleInput event state@GlobalState {..} =
-  do
-    setMousePosition (mousePosFromEvent event)
+  setMousePosition (mousePosFromEvent event)
     <$> case event of
       EventKey (SpecialKey KeyEsc) Up _ _
         | StartScreen <- screen ->
@@ -82,7 +85,7 @@ handleInput event state@GlobalState {..} =
                     GameScreen world {jump = Just InitJump {mousePoint = mpos}}
                 }
       EventKey (MouseButton LeftButton) Up _ mpos
-        | GameScreen world@World {..} <- screen,
+        | GameScreen world@World {viewport = ViewPort {..}, ..} <- screen,
           Just InitJump {..} <- jump,
           characterFloats characterStatus ->
             let
@@ -91,12 +94,12 @@ handleInput event state@GlobalState {..} =
               rposy = snd mousePoint
               mposx = fst mpos
               mposy = snd mpos
-              vx = 1000 * (rposx - mposx)
-              vy = 1000 * (rposy - mposy)
-              v2 = vx * vx + vy * vy
-              rv = sqrt $ v2 / max 1 (min v2 1000000)
-              vx' = vx / rv
-              vy' = vy / rv
+              vx = rposx - mposx
+              vy = rposy - mposy
+              direction = getNormVector (vx, vy)
+              magnitude =
+                (vMaxScale * 0.005 * scalarProduct (vx, vy) (vx, vy))
+                  * ((1 - viewPortScale) + 1)
             in
               do
                 case characterStatus of
@@ -110,7 +113,7 @@ handleInput event state@GlobalState {..} =
                           world
                             { character =
                                 character
-                                  { velocity = velocity character P.+ (vx', vy')
+                                  { velocity = velocity character P.+ (3 * magnitude P.* direction)
                                   -- galilei
                                   },
                               characterStatus = PlainCharacter,
@@ -168,7 +171,7 @@ updateWorld :: Float -> UiState -> World -> IO World
 updateWorld
   t
   UiState {..}
-  world@World {character = me@(Object (x, y) (vx, vy)), ..} =
+  world@World {character = me@(Object (x, y) (vx, vy)), viewport = v@ViewPort {..}, ..} =
     let
       modifier
         | KeyLeft `elem` pressedKeys = -1
@@ -188,6 +191,13 @@ updateWorld
           )
 
       timerUpdate = (- t)
+
+      -- can't think of a good way to make this more generic
+      viewportScaling
+        | y > 2000 = 0.125
+        | y > 1000 = 0.25
+        | y > 500 = 0.5
+        | otherwise = 1
 
       coordinateClamp (xCoord, yCoord) =
         ( if abs xCoord > fst levelBoundary then x else xCoord,
@@ -229,6 +239,7 @@ updateWorld
               jump = nextJump,
               -- remove objects colliding with player
               objects = M.map (second updateMovement) (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
+              viewport = v {viewPortScale = viewportScaling},
               -- TODO: use and increment or increment every update
               nextId = nextId,
               bonusPoints = newBonusPoints,
