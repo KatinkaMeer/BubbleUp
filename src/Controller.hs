@@ -24,9 +24,9 @@ handleInput event world@World {..} =
             Up -> delete k pressedKeys
         }
     EventResize newSize ->
-      world {
-        windowSize = newSize
-      }
+      world
+        { windowSize = newSize
+        }
     _ -> world
 
 moveSpeed, floatSpeed :: Float

@@ -1,10 +1,10 @@
-module Model
-  ( Jump (..),
-    Object (..),
-    World (..),
-    Assets (..),
-    initialWorld,
-  )
+module Model (
+  Jump (..),
+  Object (..),
+  World (..),
+  Assets (..),
+  initialWorld,
+)
 where
 
 import Graphics.Gloss (Picture, Point, Vector)
@@ -34,7 +34,7 @@ data World = World
     characterInBubble :: !Bool,
     characterAltitude :: Float,
     viewport :: !Object,
-    windowSize :: (Int, Int), --Please review type. Vector appears unsuitable due to gloss type requiremnts, see InWindow etc 
+    windowSize :: (Int, Int), -- Please review type. Vector appears unsuitable due to gloss type requiremnts, see InWindow etc
     jump :: !(Maybe Jump),
     pressedKeys :: ![SpecialKey],
     objects :: ![(ObjectType, Object)],
@@ -54,4 +54,3 @@ initialWorld assets =
       objects = [],
       assets = assets
     }
-

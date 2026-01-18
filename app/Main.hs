@@ -3,6 +3,7 @@
 module Main where
 
 import Graphics.Gloss
+
 import Controller
 import Model
 import View
@@ -23,7 +24,9 @@ main :: IO ()
 main =
   do
     assets <- loadSprites
-    let initializedWorld = initialWorld assets in
+    let
+      initializedWorld = initialWorld assets
+     in
       play
         (InWindow "GlossyGaming" (windowSize initializedWorld) initialWindowPosition)
         green
