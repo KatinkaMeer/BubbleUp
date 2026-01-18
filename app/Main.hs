@@ -2,9 +2,10 @@
 
 module Main where
 
-import Controller
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (playIO)
+
+import Controller
 import Model
 import Sound hiding (play)
 import View
