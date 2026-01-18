@@ -47,6 +47,12 @@ scalarProduct (x1, y1) (x2, y2) = x1 * x2 + y1 * y2
 getNormVector :: Vector -> Vector
 getNormVector v = (1 / sqrt (scalarProduct v v)) P.* v
 
+betweenValues :: Float -> Float -> Float -> Float
+betweenValues lowlim value uplim = max lowlim (min value uplim)
+
+resizeVectorFactor :: Float -> Float -> Vector -> Float
+resizeVectorFactor lowlim uplim v = betweenValues lowlim (sqrt (scalarProduct v v)) uplim
+
 render :: GlobalState -> Picture
 render GlobalState {..} = case screen of
   StartScreen ->
@@ -71,7 +77,7 @@ renderWorld
     pictures
       $ case jump of
         -- TODO add vectorLength variable infront that depends on strength
-        Just (InitJump m) -> line [200 P.* getNormVector (m P.- mousePosition), (0, 0)]
+        Just (InitJump m) -> line [resizeVectorFactor 60 300 (m P.- mousePosition) P.* getNormVector (m P.- mousePosition), (0, 0)]
         Nothing -> blank
         : characterBubble assets
         : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
