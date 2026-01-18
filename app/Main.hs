@@ -2,10 +2,9 @@
 
 module Main where
 
+import Controller
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (playIO)
-
-import Controller
 import Model
 import Sound hiding (play)
 import View
@@ -43,7 +42,12 @@ main =
     assets <- loadSprites
     playIO
       (InWindow "GlossyGaming" (500, 500) (10, 10))
-      green
+      ( makeColor -- himmelblau #FF007CB0
+          (0x00 / 255)
+          (0x7C / 255)
+          (0xB0 / 255)
+          (0xFF / 255)
+      )
       60
       (initialGlobalState assets)
       (pure . render)
