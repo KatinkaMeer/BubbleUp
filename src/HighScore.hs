@@ -48,7 +48,7 @@ writeHighScores :: FilePath -> [HighScore] -> IO ()
 writeHighScores path scores = do
   ensureFileExists path
   let
-    content = unlines [name ++ ", " ++ (show points) ++ ", " ++ (show altitude) | (name, (points, altitude)) <- scores]
+    content = unlines [name ++ ", " ++ show points ++ ", " ++ show altitude | (name, (points, altitude)) <- scores]
   BS.writeFile path $ BS.pack content
 
 highScoreFile :: IO FilePath
@@ -57,7 +57,7 @@ highScoreFile = getXdgDirectory XdgData $ "gamejam09" </> "highscores" <.> "csv"
 maxAltitudeFile :: IO FilePath
 maxAltitudeFile = getXdgDirectory XdgData $ "gamejam09" </> "max_altitude" <.> "txt"
 
-readMaxAltitude :: IO Int
+readMaxAltitude :: IO Integer
 readMaxAltitude = do
     path <- maxAltitudeFile
     ensureFileExists path
@@ -66,7 +66,7 @@ readMaxAltitude = do
       then pure 0
       else pure (read content)
 
-updateMaxAltitude :: Int -> IO ()
+updateMaxAltitude :: Integer -> IO ()
 updateMaxAltitude altitude = do
     path <- maxAltitudeFile
     writeFile path (show altitude)

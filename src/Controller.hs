@@ -217,5 +217,6 @@ updateWorld
               -- remove objects colliding with player
               objects = M.filterWithKey (\k _ -> k `notElem` newCollisions) objects,
               -- TODO: use and increment or increment every update
-              nextId = nextId
+              nextId = nextId,
+              bonusPoints = bonusPoints
             }

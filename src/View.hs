@@ -58,7 +58,7 @@ render GlobalState {..} = case screen of
           (-2, text "Press H to view high scores"),
           (-4, text "Press ESC to quit the game")
         ]
-  GameScreen world -> renderWorld (assets uiState) world
+  GameScreen world -> pictures [text (show (bonusPoints world)), renderWorld (assets uiState) world]
   HighScoreScreen -> blank
 
 renderWorld :: Assets -> World -> Picture

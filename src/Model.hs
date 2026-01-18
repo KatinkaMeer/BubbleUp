@@ -126,7 +126,8 @@ data World = World
     jump :: !(Maybe Jump),
     mousePosition :: !(Float, Float),
     objects :: !(Map Integer (ObjectType, Object)),
-    nextId :: !Integer
+    nextId :: !Integer,
+    bonusPoints :: !Integer
   }
 
 objectDataToPicture :: Assets -> (ObjectType, Object) -> Picture
@@ -151,5 +152,6 @@ initialWorld =
       jump = Nothing,
       mousePosition = (0, 0),
       objects = M.singleton 1 (Bubble, Object {position = (80, 40), velocity = (0, 0)}),
-      nextId = 2
+      nextId = 2,
+      bonusPoints = 0
     }
