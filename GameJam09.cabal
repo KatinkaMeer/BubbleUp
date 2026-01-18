@@ -12,7 +12,15 @@ cabal-version:      3.0
 --
 -- The name of the package.
 name:               GameJam09
-
+data-files:
+  assets/sprite.bmp
+  assets/frog/*.bmp
+  assets/bubble/*.bmp
+  assets/clouds/*.bmp
+  assets/sounds/*.wav
+  assets/title_screen/*.bmp
+  assets/frog/layers/*.bmp
+  assets/ballony/*.bmp
 -- The package version.
 -- See the Haskell package versioning policy (PVP) for standards
 -- guiding when and how versions should be incremented.
@@ -78,6 +86,8 @@ library
     ALUT,
     random
   default-language: GHC2021
+
+
 
 executable GameJam09
     -- Import common warning flags.
