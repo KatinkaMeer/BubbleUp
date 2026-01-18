@@ -11,13 +11,14 @@ import Graphics.Gloss.Interface.Pure.Game (
   Key (MouseButton, SpecialKey),
   KeyState (Down, Up),
   MouseButton (LeftButton),
-  SpecialKey (KeyDown, KeyLeft, KeyRight, KeyUp),
+  SpecialKey (KeyDown, KeyEsc, KeyLeft, KeyRight, KeySpace, KeyUp),
   blank,
   circleSolid,
   color,
   red,
   yellow,
  )
+import System.Exit (exitSuccess)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
@@ -38,60 +39,81 @@ import Model (
   characterInBubble,
   initialWorld,
  )
-import Sound (playBalloonInflateSound, playBalloonPopSound, playBubblePopSound)
+import Sound (
+  playBalloonInflateSound,
+  playBalloonPopSound,
+  playBubblePopSound,
+  playBubblesSound,
+ )
 
-handleInput :: Event -> GlobalState -> GlobalState
-handleInput event state@GlobalState {..} = setMousePosition (mousePosFromEvent event)
-  $ case event of
-    EventKey (SpecialKey k) action _ _ ->
-      state
-        { uiState =
-            uiState
-              { pressedKeys = case action of
-                  Down -> k : pressedKeys uiState
-                  Up -> delete k $ pressedKeys uiState
-              }
-        }
-    EventKey (MouseButton LeftButton) Down _ mpos
-      | GameScreen world@World {..} <- screen,
-        isNothing jump,
-        characterFloats characterStatus ->
+handleInput :: Event -> GlobalState -> IO GlobalState
+handleInput event state@GlobalState {..} =
+  do
+    setMousePosition (mousePosFromEvent event)
+    <$> case event of
+      EventKey (SpecialKey KeyEsc) Up _ _
+        | StartScreen <- screen ->
+            exitSuccess
+        | otherwise ->
+            pure state {screen = StartScreen}
+      EventKey (SpecialKey KeySpace) Up _ _
+        | StartScreen <- screen -> startGame
+        | GameScreen {} <- screen -> startGame
+      EventKey (SpecialKey k) action _ _ ->
+        pure
           state
-            { screen =
-                GameScreen world {jump = Just InitJump {mousePoint = mpos}}
+            { uiState =
+                uiState
+                  { pressedKeys = case action of
+                      Down -> k : pressedKeys uiState
+                      Up -> delete k $ pressedKeys uiState
+                  }
             }
-    EventKey (MouseButton LeftButton) Up _ mpos
-      | GameScreen world@World {..} <- screen,
-        Just InitJump {..} <- jump,
-        characterFloats characterStatus ->
-          let
-            -- TODO add minimum velocity and maximum velocity as variables
-            rposx = fst mousePoint
-            rposy = snd mousePoint
-            mposx = fst mpos
-            mposy = snd mpos
-            vx = 1000 * (rposx - mposx)
-            vy = 1000 * (rposy - mposy)
-            v2 = vx * vx + vy * vy
-            rv = sqrt $ v2 / max 1 (min v2 1000000)
-            vx' = vx / rv
-            vy' = vy / rv
-          in
-            state
-              { screen =
-                  GameScreen
-                    world
-                      { character =
-                          character
-                            { velocity = velocity character P.+ (vx', vy')
-                            -- galilei
-                            },
-                        characterStatus = PlainCharacter,
-                        jump = Nothing -- new Jump possible
-                      }
-              }
-    _ -> state
+      EventKey (MouseButton LeftButton) Down _ mpos
+        | GameScreen world@World {..} <- screen,
+          isNothing jump,
+          characterFloats characterStatus ->
+            pure
+              state
+                { screen =
+                    GameScreen world {jump = Just InitJump {mousePoint = mpos}}
+                }
+      EventKey (MouseButton LeftButton) Up _ mpos
+        | GameScreen world@World {..} <- screen,
+          Just InitJump {..} <- jump,
+          characterFloats characterStatus ->
+            let
+              -- TODO add minimum velocity and maximum velocity as variables
+              rposx = fst mousePoint
+              rposy = snd mousePoint
+              mposx = fst mpos
+              mposy = snd mpos
+              vx = 1000 * (rposx - mposx)
+              vy = 1000 * (rposy - mposy)
+              v2 = vx * vx + vy * vy
+              rv = sqrt $ v2 / max 1 (min v2 1000000)
+              vx' = vx / rv
+              vy' = vy / rv
+            in
+              pure
+                state
+                  { screen =
+                      GameScreen
+                        world
+                          { character =
+                              character
+                                { velocity = velocity character P.+ (vx', vy')
+                                -- galilei
+                                },
+                            characterStatus = PlainCharacter,
+                            jump = Nothing -- new Jump possible
+                          }
+                  }
+      _ -> pure state
   where
+    startGame = do
+      playBubblesSound
+      pure state {screen = GameScreen initialWorld}
     setMousePosition position gState@GlobalState {..}
       | GameScreen world@World {..} <- screen = gState {screen = GameScreen world {mousePosition = position}}
       | otherwise = gState
@@ -117,7 +139,7 @@ mousePosFromEvent _ = (0, 0)
 update :: Float -> GlobalState -> IO GlobalState
 update t state@GlobalState {..} = do
   nextScreen <- case screen of
-    StartScreen -> pure $ GameScreen initialWorld
+    StartScreen -> pure StartScreen
     GameScreen world -> GameScreen <$> updateWorld t uiState world
     HighScoreScreen -> pure StartScreen
   pure $ state {screen = nextScreen}

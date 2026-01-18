@@ -2,6 +2,7 @@
 
 module View (render) where
 
+import Data.Bifunctor (Bifunctor (second))
 import Data.Maybe
 import Graphics.Gloss (
   Picture (Pictures),
@@ -13,6 +14,7 @@ import Graphics.Gloss (
   line,
   pictures,
   rectangleSolid,
+  scale,
   text,
   translate,
  )
@@ -47,7 +49,15 @@ getNormVector v = (1 / sqrt (scalarProduct v v)) P.* v
 
 render :: GlobalState -> Picture
 render GlobalState {..} = case screen of
-  StartScreen -> blank
+  StartScreen ->
+    pictures
+      $ map
+        (uncurry (translate 0 . (* 100)) . second (scale 0.2 0.2))
+        [ (4, text "Some fancy game name"),
+          (1, text "Press Space to start a game"),
+          (-2, text "Press H to view high scores"),
+          (-4, text "Press ESC to quit the game")
+        ]
   GameScreen world -> renderWorld (assets uiState) world
   HighScoreScreen -> blank
 
@@ -63,13 +73,9 @@ renderWorld
         -- TODO add vectorLength variable infront that depends on strength
         Just (InitJump m) -> line [200 P.* getNormVector (m P.- mousePosition), (0, 0)]
         Nothing -> blank
-        :
-        -- player sprite
-        characterBubble assets
+        : characterBubble assets
         : frogSprite assets FrogState {eyesOpen = True, mouthOpen = False}
-        :
-        -- other stuff in the scene
-        map
+        : map
           (translate (-x) (-y))
           ( translate (-250) 0 (rectangleSolid 100 1000)
               : M.elems (M.map (objectDataToPicture assets) objects)

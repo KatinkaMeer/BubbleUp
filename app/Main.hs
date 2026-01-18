@@ -47,5 +47,5 @@ main =
       60
       (initialGlobalState assets)
       (pure . render)
-      (\event -> pure . handleInput event)
+      handleInput
       update
