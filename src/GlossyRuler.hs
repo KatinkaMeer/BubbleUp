@@ -4,7 +4,7 @@ import Graphics.Gloss
 
 drawRuler :: (Float, Float) -> (Float, Float) -> Int -> Float -> Color -> Color -> Color -> Picture
 drawRuler position dimensions numTickMarks measurement baseColor tickColor measurementColor =
-     pictures $ map (translate posx posy) ([base, measurementMaker] ++ tickMarks)
+     pictures $ map (translate posx posy) ([base] ++ tickMarks ++ [measurementMaker])
     where
         posx = fst position
         posy = snd position
@@ -18,7 +18,7 @@ drawRuler position dimensions numTickMarks measurement baseColor tickColor measu
         tick = rectangleSolid tickMarkDimx tickMarkDimy
         tickStep = dimy / fromIntegral numTickMarks
         tickSteps = take numTickMarks $ iterate (*tickStep) 1
-        tickMarks = map (\tickStep -> translate (dimx - (tickMarkDimx / 2)) tickStep $ color tickColor tick) tickSteps
+        tickMarks = map (\ts -> translate (- (dimx / 2)) ts $ color tickColor tick) tickSteps
         measurementMakerDimensions = (50, 10)
         measurementMarkerOffset = - (measurementMakerDimx / 4)
         measurementMakerDimx = fst measurementMakerDimensions

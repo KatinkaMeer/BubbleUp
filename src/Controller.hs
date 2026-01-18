@@ -6,13 +6,13 @@ module Controller where
 import Data.List (delete)
 import Data.Tuple.Extra (first, second)
 import Graphics.Gloss.Interface.Pure.Game (
-  Event (EventKey),
+  Event (EventKey, EventResize),
   Key (SpecialKey),
   KeyState (Down, Up),
   SpecialKey (KeyDown, KeyLeft, KeyRight, KeyUp),
  )
 
-import Model (Object (Object, position), World (World, character, pressedKeys))
+import Model (Object (Object, position), World (World, character, pressedKeys, windowSize))
 
 handleInput :: Event -> World -> World
 handleInput event world@World {..} =
@@ -23,6 +23,10 @@ handleInput event world@World {..} =
             Down -> k : pressedKeys
             Up -> delete k pressedKeys
         }
+    EventResize newSize ->
+      world {
+        windowSize = newSize
+      }
     _ -> world
 
 moveSpeed, floatSpeed :: Float
