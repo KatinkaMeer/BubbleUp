@@ -61,16 +61,19 @@ render GlobalState {..} = do
       $ map
         (uncurry (translate 0 . (* 100)) . second (scale 0.2 0.2))
         [ (4, text "Some fancy game name"),
-          (1, text "Press Space to start a game"),
+          (1, text "Press Space t(bonusPoints world)o start a game"),
           (-2, text "Press H to view high scores"),
           (-4, text "Press ESC to quit the game")
         ]
   GameScreen world ->
     pure $ pictures
-      [ text (show (bonusPoints world)),
+      [ text $ show (bonusPoints world + floor (elapsedTime world)
+        + floor (characterAltitude world * 3)),
         renderWorld (windowSize uiState) (assets uiState) world
       ]
-  HighScoreScreen -> pure $ text $ showHighScores highScores
+  HighScoreScreen score characterAltitude ->
+    pure $ scale 0.2 0.2 $ pictures $
+    map (uncurry (translate 0 . (* 120)) . second (text . showHighScore)) $ zip [0 ..] highScores
 
 
 
