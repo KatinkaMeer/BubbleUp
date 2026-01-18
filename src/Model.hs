@@ -83,17 +83,17 @@ data Jump
 data CharacterStatus
   = CharacterAtBalloon !Float
   | CharacterInBubble !Float
-  | PlainCharacter
+  | PlainCharacter !Float
   deriving Eq
 
 characterInBubble :: Float -> CharacterStatus
 characterInBubble t
-  | t <= 0 = PlainCharacter
+  | t <= 0 = PlainCharacter 0
   | otherwise = CharacterInBubble t
 
 characterInBalloon :: Float -> CharacterStatus
 characterInBalloon t
-  | t <= 0 = PlainCharacter
+  | t <= 0 = PlainCharacter 0
   | otherwise = CharacterAtBalloon t
 
 characterFloats :: CharacterStatus -> Bool

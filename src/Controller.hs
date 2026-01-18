@@ -103,7 +103,7 @@ handleInput event state@GlobalState {..} =
                 case characterStatus of
                   CharacterAtBalloon {} -> playBalloonPopSound
                   CharacterInBubble {} -> playBubblePopSound
-                  PlainCharacter -> pure ()
+                  PlainCharacter {} -> pure ()
                 pure
                   state
                     { screen =
@@ -114,7 +114,7 @@ handleInput event state@GlobalState {..} =
                                   { velocity = velocity character P.+ (3 * magnitude P.* direction)
                                   -- galilei
                                   },
-                              characterStatus = PlainCharacter,
+                              characterStatus = PlainCharacter 0,
                               jump = Nothing -- new Jump possible
                             }
                     }
@@ -130,6 +130,9 @@ handleInput event state@GlobalState {..} =
 -- (left/right, bottom), top unlimited
 levelBoundary :: (Float, Float)
 levelBoundary = (500, -500)
+
+fallDeathTimer :: Float
+fallDeathTimer = 10
 
 -- TODO should the initial game settings be resolved in another way?
 moveSpeed, floatSpeed, fallSpeed, vMaxScale, vBalloonMax, vBubbleMax, vPlainCharacterMax :: Float
@@ -155,7 +158,10 @@ update t state@GlobalState {..} = do
     StartScreen -> pure StartScreen
     GameScreen world@World {character = Object {..}}
       | snd position <= (snd levelBoundary + 10) -> pure StartScreen
-      | otherwise -> GameScreen <$> updateWorld t uiState world
+      | otherwise -> case characterStatus world of
+          PlainCharacter fallTimer ->
+            if fallTimer >= fallDeathTimer then pure StartScreen else GameScreen <$> updateWorld t uiState world
+          _ -> GameScreen <$> updateWorld t uiState world
     HighScoreScreen -> pure StartScreen
   pure $ state {screen = nextScreen}
 
@@ -172,12 +178,12 @@ updateWorld
       (vx', vy', updateCharacterStatus) = case characterStatus of
         CharacterAtBalloon timer -> (0.985 * betweenSpeed vBalloonMax vx, betweenSpeed vBalloonMax (vy + 2 * t * floatSpeed), characterInBalloon $ timerUpdate timer)
         CharacterInBubble timer -> (0.98 * betweenSpeed vBubbleMax vx, betweenSpeed vBubbleMax (vy + t * floatSpeed), characterInBubble $ timerUpdate timer)
-        PlainCharacter ->
+        PlainCharacter fallTimer ->
           ( 0.99 * betweenSpeed vPlainCharacterMax vx,
             betweenSpeed vPlainCharacterMax (vy - t * fallSpeed),
             -- only care about first collision
             case listToMaybe newCollisions >>= \k -> M.lookup k objects of
-              Nothing -> PlainCharacter
+              Nothing -> PlainCharacter (fallTimer + t)
               Just (Bubble, _) -> CharacterInBubble 10
               Just (Balloon, _) -> CharacterAtBalloon 5
           )
@@ -206,13 +212,13 @@ updateWorld
     in
       do
         (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
-          (CharacterAtBalloon {}, PlainCharacter) ->
+          (CharacterAtBalloon {}, PlainCharacter {}) ->
             (Nothing, bonusPoints) <$ playBalloonPopSound
-          (PlainCharacter, CharacterAtBalloon {}) ->
+          (PlainCharacter{}, CharacterAtBalloon {}) ->
             (Nothing, bonusPoints) <$ playBalloonInflateSound
-          (CharacterInBubble {}, PlainCharacter) ->
+          (CharacterInBubble {}, PlainCharacter{}) ->
             (Nothing, bonusPoints) <$ playBubblePopSound
-          (PlainCharacter, CharacterInBubble {}) ->
+          (PlainCharacter{}, CharacterInBubble {}) ->
             (Nothing, bonusPoints + 20) <$ playBubblePopSound
           _ -> pure (jump, bonusPoints)
         pure
