@@ -22,7 +22,7 @@ import Graphics.Gloss (
   white,
   yellow,
  )
-import Graphics.Gloss.Data.ViewPort (ViewPort (ViewPort), applyViewPortToPicture, viewPortTranslate)
+import Graphics.Gloss.Data.ViewPort (ViewPort (ViewPort, viewPortScale), applyViewPortToPicture, viewPortTranslate)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
@@ -32,6 +32,7 @@ import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
  )
 
 import GlossyRuler (drawRuler)
+import HighScore
 import Math
 import Model (
   Assets (..),
@@ -45,7 +46,6 @@ import Model (
   World (..),
   characterInBubble,
  )
-import HighScore
 import Sound (pause)
 import View.Frog (
   FrogState (FrogState, directionRight, eyesOpen, mouthOpen),
@@ -54,25 +54,17 @@ import View.Frog (
 
 render :: GlobalState -> IO Picture
 render GlobalState {..} = do
- highScores <- loadHighScores
- case screen of
-  StartScreen ->
-    pure $ pictures
-      $ map
-        (uncurry (translate 0 . (* 100)) . second (scale 0.2 0.2))
-        [ (4, text "Some fancy game name"),
-          (1, text "Press Space to start a game"),
-          (-2, text "Press H to view high scores"),
-          (-4, text "Press ESC to quit the game")
-        ]
-  GameScreen world ->
-    pure $ pictures
-      [ text (show (bonusPoints world)),
-        renderWorld (windowSize uiState) (assets uiState) world
-      ]
-  HighScoreScreen -> pure $ text $ showHighScores highScores
-
-
+  highScores <- loadHighScores
+  case screen of
+    StartScreen ->
+      pure $ titleScreen $ assets uiState
+    GameScreen world ->
+      pure
+        $ pictures
+          [ text (show (bonusPoints world)),
+            renderWorld (windowSize uiState) (assets uiState) world
+          ]
+    HighScoreScreen -> pure $ text $ showHighScores highScores
 
 renderWorld :: Vector -> Assets -> World -> Picture
 renderWorld
@@ -96,7 +88,7 @@ renderWorld
           y
           ( pictures
               ( ( case characterStatus of
-                    CharacterAtBalloon _ -> [circleSolid 30] -- placeholder
+                    CharacterAtBalloon _ -> [ballonBlue assets] -- placeholder
                     CharacterInBubble _ -> [characterBubble assets]
                     PlainCharacter _ -> []
                 )
@@ -124,9 +116,9 @@ renderWorld
       generateClouds (x, y) =
         translate x y
           $ pictures
-          $ map (\i -> translate (mod' (137 * i) 1280 - 740) (mod' (271 * i) 720 - 360) (cloud assets)) [1 .. 7]
-      windowWidth = fst windowSize
-      windowHeight = snd windowSize
+          $ map (\i -> translate ((751 * i) `mod'` windowWidth - (windowWidth / 2)) ((971 * i) `mod'` windowHeight - (windowHeight / 2)) (cloud assets)) [1 .. 7]
+      windowWidth = fst windowSize * viewPortScale viewport
+      windowHeight = snd windowSize * viewPortScale viewport
       rightBorderPosition = (windowWidth / 2, 0)
       rulerDimensions = (100, windowHeight)
       rulerDimensionsX = fst rulerDimensions

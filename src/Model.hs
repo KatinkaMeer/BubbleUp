@@ -116,7 +116,9 @@ data Assets = Assets
     ballonGreen :: !Picture,
     ballonPink :: !Picture,
     ballonRed :: !Picture,
-    ballonYellow :: !Picture
+    ballonYellow :: !Picture,
+    ground :: !Picture,
+    titleScreen :: !Picture
   }
 
 data World = World

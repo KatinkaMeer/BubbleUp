@@ -35,6 +35,8 @@ loadSprites = do
   ballonPink <- loadBMP "./assets/ballony/pink.bmp"
   ballonRed <- loadBMP "./assets/ballony/red.bmp"
   ballonYellow <- loadBMP "./assets/ballony/yellow.bmp"
+  ground <- loadBMP "./assets/ballony/yellow.bmp"
+  titleScreen <- loadBMP "./assets/title_screen/title_screen.bmp"
   pure
     Assets
       { player,
@@ -54,7 +56,9 @@ loadSprites = do
         ballonGreen,
         ballonPink,
         ballonRed,
-        ballonYellow
+        ballonYellow,
+        ground,
+        titleScreen
       }
 
 main :: IO ()
@@ -63,7 +67,7 @@ main =
     playStartSound
     assets <- loadSprites
     playIO
-      (InWindow "GlossyGaming" (500, 500) (10, 10))
+      (InWindow "GlossyGaming" (1920, 1080) (10, 10))
       ( makeColor -- himmelblau #FF007CB0
           (0x00 / 255)
           (0x7C / 255)
