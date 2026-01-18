@@ -1,4 +1,4 @@
-module HighScore (loadHighScores, logNewHighScore, readMaxAltitude, updateMaxAltitude) where
+module HighScore (loadHighScores, logNewHighScore, readMaxAltitude, updateMaxAltitude, showHighScores) where
 
 import Control.Monad (unless)
 import Data.Bifunctor (second)

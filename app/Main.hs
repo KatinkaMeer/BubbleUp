@@ -62,6 +62,6 @@ main =
       )
       60
       (initialGlobalState assets)
-      (pure . render)
+      render
       handleInput
       update

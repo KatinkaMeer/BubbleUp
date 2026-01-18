@@ -45,16 +45,19 @@ import Model (
   World (..),
   characterInBubble,
  )
+import HighScore
 import Sound (pause)
 import View.Frog (
   FrogState (FrogState, directionRight, eyesOpen, mouthOpen),
   frogSprite,
  )
 
-render :: GlobalState -> Picture
-render GlobalState {..} = case screen of
+render :: GlobalState -> IO Picture
+render GlobalState {..} = do
+ highScores <- loadHighScores
+ case screen of
   StartScreen ->
-    pictures
+    pure $ pictures
       $ map
         (uncurry (translate 0 . (* 100)) . second (scale 0.2 0.2))
         [ (4, text "Some fancy game name"),
@@ -63,11 +66,13 @@ render GlobalState {..} = case screen of
           (-4, text "Press ESC to quit the game")
         ]
   GameScreen world ->
-    pictures
+    pure $ pictures
       [ text (show (bonusPoints world)),
         renderWorld (windowSize uiState) (assets uiState) world
       ]
-  HighScoreScreen -> blank
+  HighScoreScreen -> pure $ text $ showHighScores highScores
+
+
 
 renderWorld :: Vector -> Assets -> World -> Picture
 renderWorld
