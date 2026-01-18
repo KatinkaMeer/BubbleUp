@@ -18,3 +18,7 @@ betweenValues lowlim value uplim = max lowlim (min value uplim)
 resizeVectorFactor :: Float -> Float -> Vector -> Float
 resizeVectorFactor lowlim uplim v = betweenValues lowlim (sqrt (scalarProduct v v)) uplim
 
+maxJumpDistance :: Float -> Float 
+-- 500 time steps are needed decrease velocity to 1 percent of its initial value
+maxJumpDistance maxV = 0.5 * 500 * maxV
+
