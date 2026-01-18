@@ -163,7 +163,7 @@ update :: Float -> GlobalState -> IO GlobalState
 update t state@GlobalState {..} = do
   nextScreen <- case screen of
     StartScreen -> pure StartScreen
-    GameScreen world@World{character = Object{..},..} ->
+    GameScreen world@World {character = Object {..}, ..} ->
       ( case characterStatus of
           PlainCharacter timer
             | timer <= -5 || snd position <= (snd levelBoundary + 10) -> pure HighScoreScreen
