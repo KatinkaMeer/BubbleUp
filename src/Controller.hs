@@ -3,12 +3,15 @@
 
 module Controller where
 
+import Data.Bifunctor (Bifunctor (bimap))
+import Data.Fixed (mod')
 import Data.List (delete, find, findIndex)
 import Data.Map (lookup, member)
 import Data.Maybe (isNothing, listToMaybe)
 import Data.Tuple.Extra (first, second)
+import Graphics.Gloss.Data.ViewPort (ViewPort (..))
 import Graphics.Gloss.Interface.Pure.Game (
-  Event (EventKey, EventMotion),
+  Event (EventKey, EventMotion, EventResize),
   Key (MouseButton, SpecialKey),
   KeyState (Down, Up),
   MouseButton (LeftButton),
@@ -23,9 +26,11 @@ import System.Exit (exitSuccess)
 
 import Data.Map qualified as M
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
+  (*),
   (+),
  )
 
+import Math
 import Model (
   Assets (..),
   CharacterStatus (..),
@@ -50,8 +55,7 @@ import Sound (
 
 handleInput :: Event -> GlobalState -> IO GlobalState
 handleInput event state@GlobalState {..} =
-  do
-    setMousePosition (mousePosFromEvent event)
+  setMousePosition (mousePosFromEvent event)
     <$> case event of
       EventKey (SpecialKey KeyEsc) Up _ _
         | StartScreen <- screen ->
@@ -81,7 +85,7 @@ handleInput event state@GlobalState {..} =
                     GameScreen world {jump = Just InitJump {mousePoint = mpos}}
                 }
       EventKey (MouseButton LeftButton) Up _ mpos
-        | GameScreen world@World {..} <- screen,
+        | GameScreen world@World {viewport = ViewPort {..}, ..} <- screen,
           Just InitJump {..} <- jump,
           characterFloats characterStatus ->
             let
@@ -90,18 +94,18 @@ handleInput event state@GlobalState {..} =
               rposy = snd mousePoint
               mposx = fst mpos
               mposy = snd mpos
-              vx = 1000 * (rposx - mposx)
-              vy = 1000 * (rposy - mposy)
-              v2 = vx * vx + vy * vy
-              rv = sqrt $ v2 / max 1 (min v2 1000000)
-              vx' = vx / rv
-              vy' = vy / rv
+              vx = rposx - mposx
+              vy = rposy - mposy
+              direction = getNormVector (vx, vy)
+              magnitude =
+                (vMaxScale * 0.005 * scalarProduct (vx, vy) (vx, vy))
+                  * ((1 - viewPortScale) + 1)
             in
               do
                 case characterStatus of
                   CharacterAtBalloon {} -> playBalloonPopSound
                   CharacterInBubble {} -> playBubblePopSound
-                  PlainCharacter -> pure ()
+                  PlainCharacter {} -> pure ()
                 pure
                   state
                     { screen =
@@ -109,13 +113,21 @@ handleInput event state@GlobalState {..} =
                           world
                             { character =
                                 character
-                                  { velocity = velocity character P.+ (vx', vy')
+                                  { velocity = velocity character P.+ (3 * magnitude P.* direction)
                                   -- galilei
                                   },
-                              characterStatus = PlainCharacter,
+                              characterStatus = PlainCharacter 0,
                               jump = Nothing -- new Jump possible
                             }
                     }
+      EventResize newSize ->
+        pure
+          state
+            { uiState =
+                uiState
+                  { windowSize = bimap fromIntegral fromIntegral newSize
+                  }
+            }
       _ -> pure state
   where
     startGame = do
@@ -151,15 +163,19 @@ update :: Float -> GlobalState -> IO GlobalState
 update t state@GlobalState {..} = do
   nextScreen <- case screen of
     StartScreen -> pure StartScreen
-    GameScreen world -> GameScreen <$> updateWorld t uiState world
-    HighScoreScreen -> pure StartScreen
+    GameScreen world ->
+      ( case characterStatus world of
+          PlainCharacter timer -> if timer <= -5 then pure HighScoreScreen else GameScreen <$> updateWorld t uiState world
+          _ -> GameScreen <$> updateWorld t uiState world
+      )
+    HighScoreScreen -> pure HighScoreScreen
   pure $ state {screen = nextScreen}
 
 updateWorld :: Float -> UiState -> World -> IO World
 updateWorld
   t
   UiState {..}
-  world@World {character = me@(Object (x, y) (vx, vy)), ..} =
+  world@World {character = me@(Object (x, y) (vx, vy)), viewport = v@ViewPort {..}, ..} =
     let
       modifier
         | KeyLeft `elem` pressedKeys = -1
@@ -168,17 +184,24 @@ updateWorld
       (vx', vy', updateCharacterStatus) = case characterStatus of
         CharacterAtBalloon timer -> (0.985 * betweenSpeed vBalloonMax vx, betweenSpeed vBalloonMax (vy + 2 * t * floatSpeed), characterInBalloon $ timerUpdate timer)
         CharacterInBubble timer -> (0.98 * betweenSpeed vBubbleMax vx, betweenSpeed vBubbleMax (vy + t * floatSpeed), characterInBubble $ timerUpdate timer)
-        PlainCharacter ->
+        PlainCharacter timer ->
           ( 0.99 * betweenSpeed vPlainCharacterMax vx,
             betweenSpeed vPlainCharacterMax (vy - t * fallSpeed),
             -- only care about first collision
             case listToMaybe newCollisions >>= \k -> M.lookup k objects of
-              Nothing -> PlainCharacter
+              Nothing -> PlainCharacter $ timerUpdate timer
               Just (Bubble, _) -> CharacterInBubble 10
               Just (Balloon, _) -> CharacterAtBalloon 5
           )
 
       timerUpdate = (- t)
+
+      -- can't think of a good way to make this more generic
+      viewportScaling
+        | y > 2000 = 0.125
+        | y > 1000 = 0.25
+        | y > 500 = 0.5
+        | otherwise = 1
 
       coordinateClamp (xCoord, yCoord) =
         ( if abs xCoord > fst levelBoundary then x else xCoord,
@@ -195,13 +218,13 @@ updateWorld
     in
       do
         (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
-          (CharacterAtBalloon {}, PlainCharacter) ->
+          (CharacterAtBalloon {}, PlainCharacter {}) ->
             (Nothing, bonusPoints) <$ playBalloonPopSound
-          (PlainCharacter, CharacterAtBalloon {}) ->
+          (PlainCharacter {}, CharacterAtBalloon {}) ->
             (Nothing, bonusPoints) <$ playBalloonInflateSound
-          (CharacterInBubble {}, PlainCharacter) ->
+          (CharacterInBubble {}, PlainCharacter {}) ->
             (Nothing, bonusPoints) <$ playBubblePopSound
-          (PlainCharacter, CharacterInBubble {}) ->
+          (PlainCharacter {}, CharacterInBubble {}) ->
             (Nothing, bonusPoints + 20) <$ playBubblePopSound
           _ -> pure (jump, bonusPoints)
         pure
@@ -219,7 +242,8 @@ updateWorld
               characterStatus = updateCharacterStatus,
               jump = nextJump,
               -- remove objects colliding with player
-              objects = M.map (\(t, o) -> (t, updateMovement o)) (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
+              objects = M.map (second updateMovement) (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
+              viewport = v {viewPortScale = viewportScaling},
               -- TODO: use and increment or increment every update
               nextId = nextId,
               bonusPoints = newBonusPoints,
