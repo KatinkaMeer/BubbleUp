@@ -68,7 +68,7 @@ main =
     playStartSound
     assets <- loadSprites
     playIO
-      (InWindow "GlossyGaming" (1920, 1080) (10, 10))
+      (InWindow "Bubble Up!" (1920, 1080) (10, 10))
       ( makeColor -- himmelblau #FF007CB0
           (0x00 / 255)
           (0x7C / 255)
