@@ -310,20 +310,20 @@ spawnObject
 spawnObject
   UiState {windowSize = (windowX, windowY)}
   ViewPort {viewPortTranslate = (shiftX, shiftY), ..} = do
-    x <- (shiftX +) <$> getRandomR (halfWindowX * viewPortScale, maxX)
-    y <- (shiftY +) <$> getRandomR (halfWindowY * viewPortScale, maxY)
+    x <- (shiftX +) <$> getRandomR (halfWindowX / viewPortScale, maxX)
+    y <- (shiftY +) <$> getRandomR (halfWindowY / viewPortScale, maxY)
     objectType <- fromList [(Bubble, 2 % 5), (Balloon, 3 % 5)]
     object <- case objectType of
       Bubble -> do
         position <-
           uniform
             [ (-x - halfCharacterSize, y + halfCharacterSize),
-              (-x - halfCharacterSize, y - windowY * viewPortScale),
+              (-x - halfCharacterSize, y - windowY / viewPortScale),
               (-x - halfCharacterSize, -y - halfCharacterSize),
-              (x - windowX * viewPortScale, y + halfCharacterSize),
-              (x - windowX * viewPortScale, -y - halfCharacterSize),
+              (x - windowX / viewPortScale, y + halfCharacterSize),
+              (x - windowX / viewPortScale, -y - halfCharacterSize),
               (x + halfCharacterSize, y + halfCharacterSize),
-              (x + halfCharacterSize, y - windowY * viewPortScale),
+              (x + halfCharacterSize, y - windowY / viewPortScale),
               (x + halfCharacterSize, -y - halfCharacterSize)
             ]
         vx <- getRandomR (-(vBubbleMax / 4), vBubbleMax / 4)
@@ -333,7 +333,7 @@ spawnObject
         position <-
           uniform
             [ (-x - halfCharacterSize, -y - halfCharacterSize),
-              (x - windowX * viewPortScale, -y - halfCharacterSize),
+              (x - windowX / viewPortScale, -y - halfCharacterSize),
               (x + halfCharacterSize, -y - halfCharacterSize)
             ]
         vx <- getRandomR (-(vBalloonMax / 4), vBalloonMax / 4)
@@ -342,6 +342,6 @@ spawnObject
     where
       halfWindowX = windowX / 2
       halfWindowY = windowY / 2
-      maxX = max (halfWindowX * viewPortScale * 3) (maxJumpDistance vPlainCharacterMax / 1000)
-      maxY = max (halfWindowY * viewPortScale * 3) (maxJumpDistance vPlainCharacterMax / 1000)
+      maxX = max (halfWindowX / viewPortScale * 3) (maxJumpDistance vPlainCharacterMax / 1000)
+      maxY = max (halfWindowY / viewPortScale * 3) (maxJumpDistance vPlainCharacterMax / 1000)
       halfCharacterSize = 64
