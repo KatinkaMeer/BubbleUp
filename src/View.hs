@@ -163,6 +163,7 @@ renderWorld
       steppedWindowHeight = snd windowSize / steppedScale
       windowWidth = fst windowSize * viewPortScale viewport
       windowHeight = snd windowSize * viewPortScale viewport
+
 {--      rightBorderPosition = (windowWidth / 2, 0)
       rulerDimensions = (100, windowHeight)
       rulerDimensionsX = fst rulerDimensions

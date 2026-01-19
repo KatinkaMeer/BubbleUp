@@ -3,7 +3,13 @@
 
 module Controller where
 
-import Control.Monad.Random.Class (MonadRandom, fromList, getRandomR, uniform)
+import Control.Monad.Random.Class (
+  MonadRandom,
+  fromList,
+  getRandomR,
+  uniform,
+  weighted,
+ )
 import Data.Bifunctor (Bifunctor (bimap))
 import Data.Fixed (mod')
 import Data.List (delete, find, findIndex)
@@ -120,8 +126,10 @@ handleInput event state@GlobalState {..} =
                           world
                             { character =
                                 character
-                                  { velocity = velocity character P.+ (3 * magnitude P.* direction)
-                                  -- galilei
+                                  { velocity =
+                                      velocity character
+                                        P.+ (3 * magnitude P.* direction)
+                                        -- galilei
                                   },
                               characterStatus = PlainCharacter 0,
                               jump = Nothing -- new Jump possible
@@ -141,7 +149,8 @@ handleInput event state@GlobalState {..} =
       playBubblesSound
       pure state {screen = GameScreen initialWorld}
     setMousePosition position gState@GlobalState {..}
-      | GameScreen world@World {..} <- screen = gState {screen = GameScreen world {mousePosition = position}}
+      | GameScreen world@World {..} <- screen =
+          gState {screen = GameScreen world {mousePosition = position}}
       | otherwise = gState
 
 -- (left/right, bottom), top unlimited
@@ -149,10 +158,12 @@ levelBoundary :: (Float, Float)
 levelBoundary = (500, -500)
 
 -- TODO should the initial game settings be resolved in another way?
-moveSpeed, floatSpeed, fallSpeed, vMaxScale, vBalloonMax, vBubbleMax, vPlainCharacterMax :: Float
+moveSpeed, floatSpeed, fallSpeed :: Float
 moveSpeed = 300
 floatSpeed = 60
 fallSpeed = 200
+
+vMaxScale, vBalloonMax, vBubbleMax, vPlainCharacterMax :: Float
 vMaxScale = 1
 vBalloonMax = vMaxScale * 400
 vBubbleMax = vMaxScale * 200
@@ -208,8 +219,16 @@ updateWorld
         | KeyRight `elem` pressedKeys = 1
         | otherwise = 0
       (vx', vy', updateCharacterStatus) = case characterStatus of
-        CharacterAtBalloon timer -> (0.985 * betweenSpeed vBalloonMax vx, betweenSpeed vBalloonMax (vy + 2 * t * floatSpeed), characterInBalloon $ timerUpdate timer)
-        CharacterInBubble timer -> (0.98 * betweenSpeed vBubbleMax vx, betweenSpeed vBubbleMax (vy + t * floatSpeed), characterInBubble $ timerUpdate timer)
+        CharacterAtBalloon timer ->
+          ( 0.985 * betweenSpeed vBalloonMax vx,
+            betweenSpeed vBalloonMax (vy + 2 * t * floatSpeed),
+            characterInBalloon $ timerUpdate timer
+          )
+        CharacterInBubble timer ->
+          ( 0.98 * betweenSpeed vBubbleMax vx,
+            betweenSpeed vBubbleMax (vy + t * floatSpeed),
+            characterInBubble $ timerUpdate timer
+          )
         PlainCharacter timer ->
           ( 0.99 * betweenSpeed vPlainCharacterMax vx,
             betweenSpeed vPlainCharacterMax (vy - t * fallSpeed),
@@ -223,21 +242,28 @@ updateWorld
       timerUpdate = (- t)
 
       viewportScaling
-        | y > secondStep = smoothTransition (secondStep, 0.25) (endStep, 0.125) y
-        | y > firstStep = smoothTransition (firstStep, 0.5) (secondStep, 0.25) y
-        | otherwise = smoothTransition (0, 1) (firstStep, 0.5) y
+        | step < 9 =
+            smoothTransition
+              (stepBase * step, 1 - step / 10)
+              (stepBase * (step + 1), 1 - (step + 1) / 10)
+              y
+        | otherwise = 0.1
         where
-          stepBase = snd windowSize * 4 / 5
+          step = fromIntegral $ floor (y / stepBase)
+          stepBase = snd windowSize * 10
           firstStep = stepBase
           secondStep = 2 * stepBase
           endStep = 3 * stepBase
 
       viewportTranslation
-        | x < (fst viewPortTranslate + 128 - fst windowSize / 2 / viewPortScale) =
-            first (const (-x - fst windowSize / 4 / viewPortScale)) viewPortTranslate
-        | x > (fst viewPortTranslate - 128 + fst windowSize / 2 / viewPortScale) =
-            first (const (-x + fst windowSize / 4 / viewPortScale)) viewPortTranslate
+        | x < (fst viewPortTranslate + 128 - halfWidth) =
+            first (const (-x - quarterWidth)) viewPortTranslate
+        | x > (fst viewPortTranslate - 128 + halfWidth) =
+            first (const (-x + quarterWidth)) viewPortTranslate
         | otherwise = viewPortTranslate
+        where
+          quarterWidth = fst windowSize / 4 / viewPortScale
+          halfWidth = 2 * quarterWidth
 
       coordinateClamp (xCoord, yCoord) =
         ( xCoord,
@@ -310,21 +336,21 @@ spawnObject
 spawnObject
   UiState {windowSize = (windowX, windowY)}
   ViewPort {viewPortTranslate = (shiftX, shiftY), ..} = do
-    x <- (shiftX +) <$> getRandomR (halfWindowX / viewPortScale, maxX)
-    y <- (shiftY +) <$> getRandomR (halfWindowY / viewPortScale, maxY)
+    x <- (-shiftX +) <$> getRandomR (halfWindowX / viewPortScale, maxX)
+    y <- (-shiftY +) <$> getRandomR (halfWindowY / viewPortScale, maxY)
     objectType <- fromList [(Bubble, 2 % 5), (Balloon, 3 % 5)]
     object <- case objectType of
       Bubble -> do
         position <-
-          uniform
-            [ (-x - halfCharacterSize, y + halfCharacterSize),
-              (-x - halfCharacterSize, y - windowY / viewPortScale),
-              (-x - halfCharacterSize, -y - halfCharacterSize),
-              (x - windowX / viewPortScale, y + halfCharacterSize),
-              (x - windowX / viewPortScale, -y - halfCharacterSize),
-              (x + halfCharacterSize, y + halfCharacterSize),
-              (x + halfCharacterSize, y - windowY / viewPortScale),
-              (x + halfCharacterSize, -y - halfCharacterSize)
+          weighted
+            [ ((-x - halfCharacterSize, y + halfCharacterSize), 3 % 16),
+              ((-x - halfCharacterSize, y - windowY / viewPortScale), 2 % 16),
+              ((-x - halfCharacterSize, -y - halfCharacterSize), 1 % 16),
+              ((x - windowX / viewPortScale, y + halfCharacterSize), 3 % 16),
+              ((x - windowX / viewPortScale, -y - halfCharacterSize), 1 % 16),
+              ((x + halfCharacterSize, y + halfCharacterSize), 3 % 16),
+              ((x + halfCharacterSize, y - windowY / viewPortScale), 2 % 16),
+              ((x + halfCharacterSize, -y - halfCharacterSize), 1 % 16)
             ]
         vx <- getRandomR (-(vBubbleMax / 4), vBubbleMax / 4)
         vy <- getRandomR (-(vBubbleMax / 4), vBubbleMax / 4)

@@ -1,7 +1,7 @@
 module Math where
 
 import Data.Ord (clamp)
-import Graphics.Gloss (Vector, Point)
+import Graphics.Gloss (Point, Vector)
 
 import Graphics.Gloss.Data.Point.Arithmetic qualified as P (
   (*),

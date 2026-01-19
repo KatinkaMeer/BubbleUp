@@ -1,5 +1,10 @@
-module HighScore (loadHighScores, logNewHighScore, readMaxAltitude, updateMaxAltitude,
- showHighScore) where
+module HighScore (
+  loadHighScores,
+  logNewHighScore,
+  readMaxAltitude,
+  updateMaxAltitude,
+  showHighScore,
+) where
 
 import Control.Monad (unless)
 import Data.Bifunctor (second)
@@ -23,7 +28,7 @@ loadHighScores = highScoreFile >>= readHighScores
 
 showHighScore :: HighScore -> String
 showHighScore (name, (points, altitude)) =
-    name ++ ": " ++ show points ++ " points, " ++ show altitude ++ " meters"
+  name ++ ": " ++ show points ++ " points, " ++ show altitude ++ " meters"
 
 readHighScores :: FilePath -> IO [HighScore]
 readHighScores path = do
