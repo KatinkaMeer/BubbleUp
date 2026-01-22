@@ -330,6 +330,19 @@ updateWorld
         object
           { position = (x + vx * t, y + vy * t)
           }
+      newCharacterPosition =
+        coordinateClamp
+          ((x, y) P.+ (t P.* (moveSpeed * modifier + vx, vy')))
+      justCloseBy (objectType, object@Object {position}) =
+        let
+          distanceV = position P.- newCharacterPosition
+          distanceSquare = scalarProduct distanceV distanceV
+        in
+          if distanceSquare <= maxDistanceSquare
+            then Just (objectType, object)
+            else Nothing
+      scaledWindow = (1 / viewPortScale) P.* windowSize
+      maxDistanceSquare = 4 * scalarProduct scaledWindow scaledWindow
     in
       do
         (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
@@ -349,15 +362,11 @@ updateWorld
               zip [nextId ..]
                 <$> mapM (const $ spawnObject uiState viewport) [1]
             else pure []
+        putStr (show (M.size objects) ++ "\r")
         pure
           world
             { character =
-                me
-                  { position =
-                      coordinateClamp
-                        ((x, y) P.+ (t P.* (moveSpeed * modifier + vx, vy'))),
-                    velocity = (vx', vy')
-                  },
+                me {position = newCharacterPosition, velocity = (vx', vy')},
               characterAltitude =
                 -(snd levelBoundary / oneMeter) - (snd viewPortTranslate / oneMeter),
               collisions = newCollisions,
@@ -367,8 +376,8 @@ updateWorld
               -- remove objects colliding with player
               objects =
                 M.union (M.fromList spawnedObjects)
-                  $ M.map
-                    (second updateMovement)
+                  $ M.mapMaybe
+                    (justCloseBy . second updateMovement)
                     (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
               -- TODO: use and increment or increment every update
               viewport =
