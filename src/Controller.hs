@@ -266,7 +266,7 @@ updateWorld
     { character = me@(Object (x, y) (vx, vy)),
       viewport = viewport@ViewPort {..},
       ..
-    } =
+    } = do
     let
       modifier
         | KeyLeft `elem` pressedKeys = -1
@@ -343,51 +343,48 @@ updateWorld
             else Nothing
       scaledWindow = (1 / viewPortScale) P.* windowSize
       maxDistanceSquare = 4 * scalarProduct scaledWindow scaledWindow
-    in
-      do
-        (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
-          (CharacterAtBalloon {}, PlainCharacter {}) ->
-            (Nothing, bonusPoints) <$ playBalloonPopSound
-          (PlainCharacter {}, CharacterAtBalloon {}) ->
-            (Nothing, bonusPoints) <$ playBalloonInflateSound
-          (CharacterInBubble {}, PlainCharacter {}) ->
-            (Nothing, bonusPoints) <$ playBubblePopSound
-          (PlainCharacter {}, CharacterInBubble {}) ->
-            (Nothing, bonusPoints + 20) <$ playBubblePopSound
-          _ -> pure (jump, bonusPoints)
-        randomNumber <- getRandomR (1 :: Int, 100)
-        spawnedObjects <-
-          if randomNumber < 4
-            then
-              zip [nextId ..]
-                <$> mapM (const $ spawnObject uiState viewport) [1]
-            else pure []
-        putStr (show (M.size objects) ++ "\r")
-        pure
-          world
-            { character =
-                me {position = newCharacterPosition, velocity = (vx', vy')},
-              characterAltitude =
-                -(snd levelBoundary / oneMeter) - (snd viewPortTranslate / oneMeter),
-              collisions = newCollisions,
-              characterStatus = updateCharacterStatus,
-              jump = nextJump,
-              nextId = nextId + fromIntegral (length spawnedObjects),
-              -- remove objects colliding with player
-              objects =
-                M.union (M.fromList spawnedObjects)
-                  $ M.mapMaybe
-                    (justCloseBy . second updateMovement)
-                    (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
-              -- TODO: use and increment or increment every update
-              viewport =
-                viewport
-                  { viewPortScale = viewportScaling,
-                    viewPortTranslate = second (const (-y)) viewportTranslation
-                  },
-              bonusPoints = newBonusPoints,
-              elapsedTime = (+ t) elapsedTime
-            }
+    (nextJump, newBonusPoints) <- case (characterStatus, updateCharacterStatus) of
+      (CharacterAtBalloon {}, PlainCharacter {}) ->
+        (Nothing, bonusPoints) <$ playBalloonPopSound
+      (PlainCharacter {}, CharacterAtBalloon {}) ->
+        (Nothing, bonusPoints) <$ playBalloonInflateSound
+      (CharacterInBubble {}, PlainCharacter {}) ->
+        (Nothing, bonusPoints) <$ playBubblePopSound
+      (PlainCharacter {}, CharacterInBubble {}) ->
+        (Nothing, bonusPoints + 20) <$ playBubblePopSound
+      _ -> pure (jump, bonusPoints)
+    randomNumber <- getRandomR (1 :: Int, 100)
+    spawnedObjects <-
+      if randomNumber < 4
+        then
+          zip [nextId ..]
+            <$> mapM (const $ spawnObject uiState viewport) [1]
+        else pure []
+    pure
+      world
+        { character =
+            me {position = newCharacterPosition, velocity = (vx', vy')},
+          characterAltitude =
+            -(snd levelBoundary / oneMeter) - (snd viewPortTranslate / oneMeter),
+          collisions = newCollisions,
+          characterStatus = updateCharacterStatus,
+          jump = nextJump,
+          nextId = nextId + fromIntegral (length spawnedObjects),
+          -- remove objects colliding with player
+          objects =
+            M.union (M.fromList spawnedObjects)
+              $ M.mapMaybe
+                (justCloseBy . second updateMovement)
+                (M.filterWithKey (\k _ -> k `notElem` newCollisions) objects),
+          -- TODO: use and increment or increment every update
+          viewport =
+            viewport
+              { viewPortScale = viewportScaling,
+                viewPortTranslate = second (const (-y)) viewportTranslation
+              },
+          bonusPoints = newBonusPoints,
+          elapsedTime = (+ t) elapsedTime
+        }
 
 scalingFactor :: Float
 scalingFactor = 1
