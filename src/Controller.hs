@@ -11,6 +11,7 @@ import Control.Monad.Random.Class (
   weighted,
  )
 import Data.Bifunctor (Bifunctor (bimap))
+import Data.Char (toUpper)
 import Data.Fixed (mod')
 import Data.List (delete, find, findIndex)
 import Data.Map (lookup, member)
@@ -117,6 +118,25 @@ handleInput event state@GlobalState {..} =
                       Up -> delete k $ pressedKeys uiState
                   }
             }
+      EventKey (Char c) action _ _
+        | GameScreen {} <- screen ->
+            pure
+              state
+                { uiState =
+                    uiState
+                      { pressedKeys =
+                          let
+                            mkey = case toUpper c of
+                              'A' -> Just KeyLeft
+                              'D' -> Just KeyRight
+                              _ -> Nothing
+                          in
+                            case (action, mkey) of
+                              (Down, Just key) -> key : pressedKeys uiState
+                              (Up, Just key) -> delete key $ pressedKeys uiState
+                              (_, Nothing) -> pressedKeys uiState
+                      }
+                }
       EventKey (MouseButton LeftButton) Down _ mpos
         | GameScreen world@World {..} <- screen,
           isNothing jump,
