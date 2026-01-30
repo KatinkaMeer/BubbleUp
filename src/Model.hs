@@ -15,6 +15,7 @@ module Model (
   characterInBubble,
   initialGlobalState,
   initialWorld,
+  defaultBaloonSprites,
 )
 where
 
@@ -83,8 +84,9 @@ data Object = Object
   }
   deriving (Eq, Show)
 
-data ObjectType = Balloon | Bubble
-  deriving (Eq, Show)
+data ObjectType
+  = Balloon !(Assets -> Picture)
+  | Bubble
 
 data Jump
   = Jump
@@ -130,14 +132,21 @@ data Assets = Assets
     frogMouthRight :: !Picture,
     frogMouthLeft :: !Picture,
     cloud :: !Picture,
-    ballonBlue :: !Picture,
-    ballonGreen :: !Picture,
-    ballonPink :: !Picture,
-    ballonRed :: !Picture,
-    ballonYellow :: !Picture,
+    balloonBlue :: !Picture,
+    balloonGreen :: !Picture,
+    balloonPink :: !Picture,
+    balloonRed :: !Picture,
+    balloonYellow :: !Picture,
     ground :: !Picture,
     titleScreen :: !Picture
   }
+
+defaultBaloonSprites :: [Assets -> Picture]
+defaultBaloonSprites =
+  [ balloonPink,
+    balloonRed,
+    balloonYellow
+  ]
 
 data World = World
   { character :: !Object,

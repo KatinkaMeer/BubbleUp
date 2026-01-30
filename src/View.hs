@@ -53,8 +53,9 @@ import Model (
   UiState (UiState, assets, windowSize),
   World (..),
   characterInBubble,
+  defaultBaloonSprites,
  )
-import Sound (pause)
+import Sound (pause, pickRandom)
 import View.Frog (
   FrogState (FrogState, directionRight, eyesOpen, mouthOpen),
   frogSprite,
@@ -166,7 +167,7 @@ renderWorld
           y
           ( pictures
               ( ( case characterStatus of
-                    CharacterAtBalloon _ -> [ballonBlue assets] -- placeholder
+                    CharacterAtBalloon _ -> [balloonBlue assets] -- placeholder
                     CharacterInBubble _ -> [characterBubble assets]
                     PlainCharacter _ -> []
                 )
@@ -194,7 +195,7 @@ renderWorld
           position
           ( case t of
               Bubble -> bubble assets
-              Balloon -> ballonRed assets
+              Balloon spriteSelector -> spriteSelector assets
           )
 
       -- using prime factors and the screen size as modulo 'ransomly'

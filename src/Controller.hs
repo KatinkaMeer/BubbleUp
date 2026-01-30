@@ -58,6 +58,7 @@ import Model (
   characterFloats,
   characterInBalloon,
   characterInBubble,
+  defaultBaloonSprites,
   initialWorld,
  )
 import Sound (
@@ -310,7 +311,7 @@ updateWorld
             case listToMaybe newCollisions >>= \k -> M.lookup k objects of
               Nothing -> PlainCharacter $ timerUpdate timer
               Just (Bubble, _) -> CharacterInBubble 10
-              Just (Balloon, _) -> CharacterAtBalloon 5
+              Just (Balloon _, _) -> CharacterAtBalloon 5
           )
 
       timerUpdate = (- t)
@@ -409,18 +410,18 @@ updateWorld
 scalingFactor :: Float
 scalingFactor = 1
 
-spawnObject
-  :: MonadRandom m
-  => UiState
-  -> ViewPort
-  -> m (ObjectType, Object)
+spawnObject ::
+  (MonadRandom m) =>
+  UiState ->
+  ViewPort ->
+  m (ObjectType, Object)
 spawnObject
   UiState {windowSize}
   ViewPort {viewPortTranslate = (shiftX, shiftY), ..} = do
     p <- (,) <$> getRandomR (-1, 1) <*> getRandomR (-1, 1)
-    objectType <- fromList [(Bubble, 3 % 5), (Balloon, 2 % 5)]
-    object <- case objectType of
-      Bubble -> do
+    isBubble <- fromList [(True, 3 % 5), (False, 2 % 5)]
+    (finalObjectType, object) <- if isBubble then
+      do
         position <-
           weighted
             [ (left $ top p, 3 % 16),
@@ -434,13 +435,15 @@ spawnObject
             ]
         vx <- getRandomR ((vBubbleMax / 4) P.* (-1, 1))
         vy <- getRandomR ((vBubbleMax / 4) P.* (-1, 1))
-        pure $ Object {position = position, velocity = (vx, vy)}
-      Balloon -> do
+        pure (Bubble, Object {position = position, velocity = (vx, vy)})
+      else
+        do
+        spriteSelector <- fromList $ map (,1 % 3) defaultBaloonSprites
         position <-
           uniform [left $ bottom p, center $ bottom p, right $ bottom p]
         vx <- getRandomR ((vBalloonMax / 4) P.* (-1, 1))
-        pure $ Object {position = position, velocity = (vx, vBalloonMax)}
-    pure (objectType, object)
+        pure (Balloon spriteSelector, Object {position = position, velocity = (vx, vBalloonMax)})
+    pure (finalObjectType, object)
     where
       scaledWindow = 1 / viewPortScale P.* windowSize
       (extendedHalfWindowX, extendedHalfWindowY) =

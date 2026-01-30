@@ -5,6 +5,7 @@ module Sound (
   playBalloonInflateSound,
   playBubblePopSound,
   playStartSound,
+  pickRandom,
 )
 where
 

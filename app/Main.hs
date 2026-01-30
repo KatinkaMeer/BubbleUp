@@ -31,11 +31,11 @@ loadSprites = do
   frogMouthRight <- loadBMP =<< getDataFileName "assets/frog/layers/mouth-right.bmp"
   frogMouthLeft <- loadBMP =<< getDataFileName "assets/frog/layers/mouth-left.bmp"
   cloud <- loadBMP =<< getDataFileName "assets/clouds/white.bmp"
-  ballonBlue <- loadBMP =<< getDataFileName "assets/ballony/blue.bmp"
-  ballonGreen <- loadBMP =<< getDataFileName "assets/ballony/green.bmp"
-  ballonPink <- loadBMP =<< getDataFileName "assets/ballony/pink.bmp"
-  ballonRed <- loadBMP =<< getDataFileName "assets/ballony/red.bmp"
-  ballonYellow <- loadBMP =<< getDataFileName "assets/ballony/yellow.bmp"
+  balloonBlue <- loadBMP =<< getDataFileName "assets/ballony/blue.bmp"
+  balloonGreen <- loadBMP =<< getDataFileName "assets/ballony/green.bmp"
+  balloonPink <- loadBMP =<< getDataFileName "assets/ballony/pink.bmp"
+  balloonRed <- loadBMP =<< getDataFileName "assets/ballony/red.bmp"
+  balloonYellow <- loadBMP =<< getDataFileName "assets/ballony/yellow.bmp"
   ground <- loadBMP =<< getDataFileName "assets/ballony/yellow.bmp"
   titleScreen <- loadBMP =<< getDataFileName "assets/title_screen/title_screen.bmp"
   pure
@@ -53,11 +53,11 @@ loadSprites = do
         frogMouthRight,
         frogMouthLeft,
         cloud,
-        ballonBlue,
-        ballonGreen,
-        ballonPink,
-        ballonRed,
-        ballonYellow,
+        balloonBlue,
+        balloonGreen,
+        balloonPink,
+        balloonRed,
+        balloonYellow,
         ground,
         titleScreen
       }
