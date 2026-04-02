@@ -157,8 +157,8 @@ handleInput event state@GlobalState {..} =
               rposy = snd mousePoint
               mposx = fst mpos
               mposy = snd mpos
-              vx = rposx - mposx
-              vy = rposy - mposy
+              vx = max (0.005) (rposx - mposx)
+              vy = max (0.005) (rposy - mposy)
               direction = getNormVector (vx, vy)
               magnitude =
                 (vMaxScale * 0.005 * scalarProduct (vx, vy) (vx, vy))
